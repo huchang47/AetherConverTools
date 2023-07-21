@@ -1,5 +1,5 @@
 # AetherConverTools
-- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500"blibili页面")，[尽灭](https://github.com/GoldenLoong"Github页面")
+- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)
 - 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
 - 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)和Segment-Anything使用，可获得更好的效果。
 

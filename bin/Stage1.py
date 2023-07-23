@@ -13,6 +13,10 @@ else:
     device = torch.device("cpu")
     print("加速失败！使用的设备：CPU")
 
+# 定义一个倍数函数
+def multiple(num,mul):
+    return (num // mul + 1) * mul
+
 # 获取当前文件夹路径
 folder_path = os.path.dirname(os.getcwd())
 mask_path = os.path.join(folder_path, "video_mask")    #定义蒙版文件夹
@@ -58,6 +62,23 @@ def crop_mask_image(file_path, output_path):
         if left >= right or top >= bottom:
             print(f"错误：{file_path} 中未找到足够的白色像素区域。")
             return
+        
+        # 裁切后长宽需要是8的倍数
+        frame_w,frame_h=image.size  #原图长和高
+        dw = right-left #差值 裁切后图的长
+        dh = bottom-top #差值 裁切后图的高
+        frame_w2 = multiple(dw,8)    #长重整为8的倍数
+        frame_h2 = multiple(dh,8)    #高重整为8的倍数
+        dw2 = frame_w2-dw   #新长和旧长的差值
+        dh2 = frame_h2-dh   #新高和旧高的差值
+        if left > dw2:  #如果左侧还有地方
+            left = left - dw2   #差值就加到左边
+        elif frame_w - right >dw2:  #如果右侧还有地方
+            right = right + dw2 #差值就加到右边
+        if top > dh2:   #如果上面还有地方
+            top = top - dh2 #差值就加到上面
+        elif frame_h - bottom > dh2:    #如果下面还有地方
+            bottom = bottom + dh2   #差值就加到下面
 
         # 转换为NumPy数组并裁切图像
         image_array = np.array(image)
@@ -69,7 +90,6 @@ def crop_mask_image(file_path, output_path):
         print(f"裁切点：({left},{top}) , ({right},{bottom})")
 
         # 将原始坐标即时写入TXT文件
-
         info = f"{file_name[:-4]},{left},{top},{right},{bottom}\n"
         with open(output_file_path, 'a') as info_file:
             info_file.write(info)
@@ -269,7 +289,7 @@ else:
 
 # 把选择结果存起来，第三步方便调用
 with open(map_file, "a") as f:
-    f.write("选的是我")
+    f.write("Choose me")
 
 # 坐标文件路径
 folder_path = os.path.dirname(os.getcwd())
@@ -294,14 +314,16 @@ if not os.path.exists(frame_out_folder_path):
 with open(info_file_path, 'r') as info_file:
     lines = info_file.read().splitlines()
 
-for file, line in zip(os.listdir(frame_path), lines):
-    if file.endswith('.png'):
-        img = Image.open(os.path.join(frame_path, file))
-        line = line.strip()
-        filename, left, top, right, bottom = map(str, line.split(','))
-        cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
-        cropped_img.save(os.path.join(frame_out_folder_path, file))
-        print("帧"+file+"裁切完成！")
+# 开始裁切视频帧
+frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
+
+for file, line in zip(frame_files, lines):
+    img = Image.open(os.path.join(frame_path, file))
+    line = line.strip()
+    filename, left, top, right, bottom = map(str, line.split(','))
+    cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
+    cropped_img.save(os.path.join(frame_out_folder_path, file))
+    print("帧"+file+"裁切完成！")
 
 # 重新裁切与帧大小对应的蒙版
 for file, line in zip(os.listdir(mask_path), lines):

@@ -18,7 +18,7 @@ if not os.path.isfile(info_file_path1) and not os.path.isfile(info_file_path2):
 with open('原始坐标.txt', 'r') as f:
     lines = f.readlines()
     last_line = lines[-1].strip()
-    if last_line.startswith('选的是我'):
+    if last_line.startswith('Choose me'):
         map_file="原始坐标.txt"
     else:
         map_file="改造坐标.txt"

@@ -8,7 +8,7 @@ from torchvision import transforms
 from PIL import Image
 # 获取命令行参数
 args = sys.argv
-args=['12','G:\以太转绘工作流\\video_mask','G:\以太转绘工作流\\video_frame','G:\以太转绘工作流\\123','G:\以太转绘工作流\\456']
+#args=['12','G:\以太转绘工作流\\video_mask','G:\以太转绘工作流\\video_frame','G:\以太转绘工作流\\123','G:\以太转绘工作流\\456']
 
 # 检查是否有可用的CUDA设备
 if torch.cuda.is_available():

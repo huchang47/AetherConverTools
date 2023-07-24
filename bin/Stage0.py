@@ -1,9 +1,7 @@
 import sys
 import subprocess
 import os
-import torch
 import shutil
-import cv2
 import time
 # 获取命令行参数
 args = sys.argv

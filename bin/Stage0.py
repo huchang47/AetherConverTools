@@ -1,16 +1,27 @@
+import sys
 import subprocess
 import os
 import torch
 import shutil
 import cv2
+import time
+# 获取命令行参数
+args = sys.argv
+
+# 打印命令行参数
+print("命令行参数：")
+for arg in args:
+    print(arg)
 
 # 定义需要处理的视频文件路径
-folder_path = os.path.dirname(os.getcwd())
-video_file = os.path.join(folder_path, "video.mp4")
+folder_path = os.getcwd()
+video_file = sys.argv[1]
 
-# 定义输出图片和蒙版的目录
-frame_out_dir = os.path.join(folder_path, "video_frame")
-mask_out_dir = os.path.join(folder_path, "video_mask")
+# 定义帧率（这里设置为每秒截取15帧）
+fps = sys.argv[2]
+
+# 定义输出图片目录
+frame_out_dir = sys.argv[3]
 
 
 # 检查是否有可用的CUDA设备
@@ -20,15 +31,6 @@ if torch.cuda.is_available():
 else:
     device = torch.device("cpu")
     print("加速失败！使用的设备：CPU")
-
-# 蒙版目录存在就删除
-if os.path.exists(mask_out_dir):
-    shutil.rmtree(mask_out_dir)
-# 创建蒙版输出目录
-os.makedirs(mask_out_dir)
-
-# 定义帧率（这里设置为每秒截取15帧）
-fps = input("请输入想要输出的视频帧率（默认15）：") or 15
 
 # 帧目录存在就删除
 if os.path.exists(frame_out_dir):
@@ -46,20 +48,17 @@ subprocess.call([
 print("\n\n视频转帧步骤已完成！码率为： "+str(fps))
 
 # 生成蒙版
-print("\n\n是否同步生成蒙版？")
-print("1. 生成")
-print("2. 不生成")
-choice = input("请输入是否生成蒙版：")
+if sys.argv[4] == "True":
+    # 定义蒙版目录
+    mask_out_dir = sys.argv[6]
 
-if choice == '1':
-    print("生成！拆解一切，启动！")
-    print("\n选择蒙版生成算法")
-    print("1. 快速，速度快但质量稍差")
-    print("2. 标准，质量更好")
-    
-    # 选择蒙版生成模式
-    choice2 = input("请输入蒙版算法的编号：")
-    if choice2 == '1':
+    # 蒙版目录存在就删除
+    if os.path.exists(mask_out_dir):
+        shutil.rmtree(mask_out_dir)
+    # 创建蒙版输出目录
+    os.makedirs(mask_out_dir)
+
+    if sys.argv[5] == "True":
         print("你选择了快速模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
         subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map','--fast'])
@@ -67,13 +66,10 @@ if choice == '1':
         print("你选择了标准模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
         subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map'])
-elif choice == '2':
-    print("不生成。")
-    print("已经结束咧！")
-    quit()
 else:
-    print("无效的选择，默认不生成")
-    print("已经结束咧！")
+    print("视频帧生成完成！")
+    print("5秒后该窗口自动关闭")
+    time.sleep(5)
     quit()
 
 # 开始修正蒙版名称
@@ -93,8 +89,5 @@ for filename in files:
         os.rename(file_path, new_file_path)
 
 print("视频帧和对应的蒙版文件生成完成！")
-
-
-
-
-
+print("5秒后该窗口自动关闭")
+time.sleep(5)

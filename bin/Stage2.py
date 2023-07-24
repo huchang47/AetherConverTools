@@ -61,15 +61,15 @@ for frame, txt in zip(frame_files, txt_files):
     encoded_image = base64.b64encode(bytes).decode('utf-8')
     frame_w,frame_h = im.size
     payload = {
-        "init_images": [encoded_image],
-        "prompt": tag,
-        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
-        "width": frame_w,
-        "height": frame_h,
-        "denoising_strength": denoising_strength,
-        #"sampler_index": "DPM++ 2M Karras",
-        "batch_size": 1,
-        "steps": 20
+        "init_images": [encoded_image], #图生图的原图
+        "prompt": tag,  #提示词，来自于txt文件
+        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",  #反向提示词，填或者不填
+        "width": frame_w,   #生成的宽度，来自原图
+        "height": frame_h,  #生成的高度，来自原图
+        "denoising_strength": denoising_strength,   #重绘幅度
+        "sampler_index": "DPM++ 2M Karras", #采样方法
+        "batch_size": 1,    #生成图的数量，只能为1
+        "steps": 20 #迭代步数
     }
     print(frame+"开始生成！生成尺寸为"+str(frame_w)+"x"+str(frame_h)+"像素")
 

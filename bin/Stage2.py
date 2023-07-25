@@ -5,15 +5,8 @@ import requests
 import io
 import cv2
 import base64
+from base64 import b64encode
 from PIL import Image, PngImagePlugin
-
-# 检查是否有可用的CUDA设备
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-    print("加速成功！使用的设备：CUDA")
-else:
-    device = torch.device("cpu")
-    print("加速失败！使用的设备：CPU")
 
 # 定义本机的SD网址
 url = "http://127.0.0.1:7860"
@@ -31,6 +24,12 @@ if os.path.exists(out_path):
 # 不存在就创建
 if not os.path.exists(out_path):
     os.makedirs(out_path)
+
+# 定义图片到Base64的函数
+def encodeImage(image):
+    retval, bytes = cv2.imencode('.png', image)
+    b64img = b64encode(bytes).decode("utf-8")
+    return b64img
 
 # 轮询输入目录
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
@@ -57,8 +56,7 @@ for frame, txt in zip(frame_files, txt_files):
     # 载入单张图片基本参数
     im = Image.open(frame_file)
     img = cv2.imread(frame_file)
-    retval, bytes = cv2.imencode('.png', img)
-    encoded_image = base64.b64encode(bytes).decode('utf-8')
+    encoded_image = encodeImage(img)
     frame_w,frame_h = im.size
     payload = {
         "init_images": [encoded_image], #图生图的原图

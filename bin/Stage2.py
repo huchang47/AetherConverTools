@@ -5,7 +5,6 @@ import requests
 import io
 import cv2
 import base64
-from base64 import b64encode
 from PIL import Image, PngImagePlugin
 
 # 定义本机的SD网址
@@ -24,12 +23,6 @@ if os.path.exists(out_path):
 # 不存在就创建
 if not os.path.exists(out_path):
     os.makedirs(out_path)
-
-# 定义图片到Base64的函数
-def encodeImage(image):
-    retval, bytes = cv2.imencode('.png', image)
-    b64img = b64encode(bytes).decode("utf-8")
-    return b64img
 
 # 轮询输入目录
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
@@ -56,18 +49,37 @@ for frame, txt in zip(frame_files, txt_files):
     # 载入单张图片基本参数
     im = Image.open(frame_file)
     img = cv2.imread(frame_file)
-    encoded_image = encodeImage(img)
+    retval, bytes = cv2.imencode('.png', img)
+    encoded_image = base64.b64encode(bytes).decode('utf-8')
     frame_w,frame_h = im.size
     payload = {
-        "init_images": [encoded_image], #图生图的原图
-        "prompt": tag,  #提示词，来自于txt文件
-        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",  #反向提示词，填或者不填
-        "width": frame_w,   #生成的宽度，来自原图
-        "height": frame_h,  #生成的高度，来自原图
-        "denoising_strength": denoising_strength,   #重绘幅度
-        "sampler_index": "DPM++ 2M Karras", #采样方法
-        "batch_size": 1,    #生成图的数量，只能为1
-        "steps": 20 #迭代步数
+        "init_images": [encoded_image],
+        "prompt": tag,
+        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+        "width": frame_w,
+        "height": frame_h,
+        "denoising_strength": denoising_strength,
+        #"sampler_index": "DPM++ 2M Karras",
+        "batch_size": 1,
+        "steps": 20,
+        "alwayson_scripts": {
+            "controlnet": {
+                "args": [
+                    {
+                        "input_image": encoded_image,
+                        "module": "lineart_realistic",  # 第一个CN的预处理器
+                        "model": "control_v11p_sd15_lineart [43d4be0d]",
+                        "weight": 0.7,  # 第一个CN的权重
+                    },
+                    {
+                        "input_image": encoded_image,
+                        "module": "tile_colorfix",  # 第二个CN的预处理器
+                        "model": "None",
+                        "weight": 0.6,  #第二个CN的权重
+                    }
+                ]
+            }
+        }
     }
     print(frame+"开始生成！生成尺寸为"+str(frame_w)+"x"+str(frame_h)+"像素")
 

@@ -24,6 +24,21 @@ if os.path.exists(out_path):
 if not os.path.exists(out_path):
     os.makedirs(out_path)
 
+# 创建CN栏位
+def createCNUnit(model, weight, threshold_a=None, guess=True):
+    cn = {
+        "module": model,
+        "model": ex_control_dict[model],
+        "weight": weight,
+    }
+    if threshold_a is not None:
+        cn.update({"threshold_a": threshold_a}) 
+    if guess:
+        cn.update({"control_mode": "ControlNet is more important"})
+    else:
+        cn.update({"control_mode": "Balanced"})
+    return cn
+
 # 轮询输入目录
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
 txt_files = [f for f in os.listdir(frame_path) if f.endswith('.txt')]

@@ -7,14 +7,6 @@ import cv2
 import base64
 from PIL import Image, PngImagePlugin
 
-# 检查是否有可用的CUDA设备
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-    print("加速成功！使用的设备：CUDA")
-else:
-    device = torch.device("cpu")
-    print("加速失败！使用的设备：CPU")
-
 # 定义本机的SD网址
 url = "http://127.0.0.1:7860"
 

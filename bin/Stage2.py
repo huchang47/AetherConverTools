@@ -6,6 +6,7 @@ import io
 import cv2
 import base64
 import json
+from io import BytesIO
 from PIL import Image, PngImagePlugin
 
 # 定义本机的SD网址
@@ -52,6 +53,13 @@ folder_path = os.path.dirname(os.getcwd())
 mask_path = os.path.join(folder_path, "video_mask_w")    #定义蒙版文件夹
 frame_path = os.path.join(folder_path, "video_frame_w")  #定义原始图像文件夹
 
+# 定义图片转base64函数
+def img_str(image):
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
 # 图生图输出文件夹
 out_path = os.path.join(folder_path, "video_remake")
 # 蒙版文件夹存在就删除
@@ -84,9 +92,9 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 载入单张图片基本参数
     im = Image.open(frame_file)
-    img = cv2.imread(frame_file)
-    retval, bytes = cv2.imencode('.png', img)
-    encoded_image = base64.b64encode(bytes).decode('utf-8')
+    #img = cv2.imread(frame_file)
+    #retval, bytes = cv2.imencode('.png', img)
+    encoded_image = img_str(im)
     frame_w,frame_h = im.size
 
     # 轮询输出ControlNet的参数
@@ -106,7 +114,6 @@ for frame, txt in zip(frame_files, txt_files):
         "width": frame_w,
         "height": frame_h,
         "denoising_strength": denoising_strength,
-        #"sampler_index": "DPM++ 2M Karras",
         "batch_size": 1,
         "steps": 20,
         "alwayson_scripts": {

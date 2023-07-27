@@ -1,9 +1,7 @@
 import os
-import torch
 import shutil
 import requests
 import io
-import cv2
 import base64
 import json
 from io import BytesIO
@@ -22,12 +20,6 @@ def CNmodel_list(ex_url):
     return requests.get(url)
 
 #r=CNmodel_list("/controlnet/control_types")
-
-# 定义一个ContrlNet参数表
-control_nets = [
-    ("lineart_realistic", 0.7), # 第一个CN名称和权重
-    ("tile_colorfix", 0.6), # 第二个
-]
 
 # 定义ControlNet的模型对应字典
 ex_control_dict = {
@@ -83,6 +75,8 @@ if len(txt_files) == 0:
 # 输入重绘幅度
 denoising_strength = input("请输入重绘幅度，0 - 1之间：")
 print("重绘幅度为：" + denoising_strength)
+Mag = float(input("请输入图片缩小倍率，默认为1：") or 1)
+print("缩小倍率为：" + str(Mag))
 
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
@@ -92,10 +86,14 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 载入单张图片基本参数
     im = Image.open(frame_file)
-    #img = cv2.imread(frame_file)
-    #retval, bytes = cv2.imencode('.png', img)
     encoded_image = img_str(im)
     frame_w,frame_h = im.size
+
+    # 定义一个ContrlNet参数表
+    control_nets = [
+        ("lineart_realistic", 0.7), # 第一个CN名称和权重
+        ("tile_colorfix", 0.6), # 第二个
+]
 
     # 轮询输出ControlNet的参数
     cn_args = [
@@ -104,25 +102,30 @@ for frame, txt in zip(frame_files, txt_files):
             "module": cn[0], 
             "model": ex_control_dict[cn[0]],
             "weight": cn[1], 
+            "resize_mode": 0,   # 缩放模式，0调整大小、1裁剪后缩放、2缩放后填充空白
+            "processor_res": 64,
+            "pixel_perfect": True,  # 完美像素模式
+            "control_mode": 0,  # 控制模式，0均衡、1偏提示词、2偏CN
         } for cn in control_nets
     ]
     
     payload = {
         "init_images": [encoded_image],
-        "prompt": tag,
-        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
-        "width": frame_w,
-        "height": frame_h,
-        "denoising_strength": denoising_strength,
-        "batch_size": 1,
-        "steps": 20,
+        "prompt": tag,  # 正向提示词，通过txt文件载入
+        # 反向提示词，暂时在这里写死
+        "negative_prompt": "(nsfw:2), badhandv4, ng_deepnegative_v1_75t,sketches, (worst quality:2), (low quality:2), (normal quality:2),normal quality, ((monochrome)), ((grayscale)), see-through, skin spots, acnes, skin blemishes, bad anatomy,DeepNegative,(fat:1.2),facing away, looking away,tilted head, bad anatomy,bad hands, text, error, missing fingers,extra digit, fewer digits, cropped, worst quality, low quality, normal quality,jpeg artifacts,signature, watermark, username,blurry,bad feet,cropped,poorly drawn hands,poorly drawn face,mutation,deformed,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,extra fingers,fewer digits,extra limbs,extra arms,extra legs,malformed limbs,fused fingers,too many fingers,long neck,cross-eyed,mutated hands,bad body,bad proportions,gross proportions,text,error,missing fingers,missing arms,missing legs,extra digit, extra arms, extra leg, extra foot",
+        "width": frame_w * Mag,   # 宽
+        "height": frame_h * Mag,  # 高
+        "denoising_strength": denoising_strength,   # 重绘比例
+        "batch_size": 1,    # 生成张数，别改，只会留下最后一张
+        "steps": 20,    # 迭代步数
         "alwayson_scripts": {
             "controlnet": {
                 "args": cn_args
             }
         }
     }
-    print(frame+"开始生成！生成尺寸为"+str(frame_w)+"x"+str(frame_h)+"像素")
+    print(frame+"开始生成！生成尺寸为"+str(int(frame_w*Mag))+"x"+str(int(frame_h*Mag))+"像素")
 
     response = requests.post(url=f'{url}/sdapi/v1/img2img', json=payload)
 

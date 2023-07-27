@@ -17,8 +17,8 @@
 ## 执行步骤：
 1. 运行``Stage1_横裁竖.bat``文件，等待运行结束（有CUDA会得到加速）
 2. 裁切完成的帧文件在``video_frame_w``，蒙版文件在``video_mask_w``，文件夹会自动生成
-3. 将``video_frame_w``中的图片用你习惯的方式图生图，``video_mask_w``中的蒙版文件可作为辅助
-4. 将图生图的成品，放入``video_remake``目录
+3. 在Webui中，使用''wd14-tagger''插件，对''video_frame_w''目录文件完成反推提示词操作
+4. ''注意文件夹和文件名不可包含中文''运行''Stage2_图生图.bat''，调用Webui的api，将''video_frame_w''中的文件进行图生图，放置在''video_remake''目录
 5. 运行``Stage3_竖进横.bat``文件，等待运行结束，生成的文件在``video_frame_Done``中
 
 ## 可选步骤：

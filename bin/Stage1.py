@@ -318,12 +318,13 @@ with open(info_file_path, 'r') as info_file:
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
 
 for file, line in zip(frame_files, lines):
-    img = Image.open(os.path.join(frame_path, file))
-    line = line.strip()
-    filename, left, top, right, bottom = map(str, line.split(','))
-    cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
-    cropped_img.save(os.path.join(frame_out_folder_path, file))
-    print("帧"+file+"裁切完成！")
+    if file.endswith('.png'):
+        img = Image.open(os.path.join(frame_path, file))
+        line = line.strip()
+        filename, left, top, right, bottom = map(str, line.split(','))
+        cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
+        cropped_img.save(os.path.join(frame_out_folder_path, file))
+        print("帧"+file+"裁切完成！")
 
 # 重新裁切与帧大小对应的蒙版
 for file, line in zip(os.listdir(mask_path), lines):

@@ -38,11 +38,12 @@ with open(info_file_path, 'r') as info_file:
 
 # 开始遍历融合
 for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(overlay_folder_path),lines):
-    frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA")
-    filename, left, top, right, bottom = map(str, line.split(','))
-    overlay = Image.open(os.path.join(overlay_folder_path, frame_w)).convert("RGBA")
-    frame.paste(overlay, (int(left), int(top)), mask=overlay)
-    frame.save(os.path.join(output_folder_path, frame_w))
-    print(frame_w+"融合完成！")
+    if frame.endswith('.png'):
+        frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA")
+        filename, left, top, right, bottom = map(str, line.split(','))
+        overlay = Image.open(os.path.join(overlay_folder_path, frame_w)).convert("RGBA")
+        frame.paste(overlay, (int(left), int(top)), mask=overlay)
+        frame.save(os.path.join(output_folder_path, frame_w))
+        print(frame_w+"融合完成！")
 
 print("所有新图已融入原图，第三步完成！")

@@ -1,8 +1,6 @@
 import os
 import subprocess
-import torch
 import shutil
-import cv2
 from PIL import Image
 
 # 定义工作路径
@@ -11,14 +9,6 @@ folder_path = os.path.dirname(os.getcwd())
 frame_path = os.path.join(folder_path, "video_remake")
 mask_path = os.path.join(frame_path, "mask")
 frame_alpha_path = os.path.join(frame_path, "alpha")
-
-# 检查是否有可用的CUDA设备
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-    print("加速成功！使用的设备：CUDA")
-else:
-    device = torch.device("cpu")
-    print("加速失败！使用的设备：CPU")
 
 # 选择周边功能
 print("请选择使用的周边功能")
@@ -81,17 +71,18 @@ elif choice == '2':
     
     for image,mask in zip(os.listdir(frame_path),os.listdir(mask_path)):
         # 打开两个文件
-        image_out = os.path.join(frame_alpha_path, image)
-        imagename=image
-        image = Image.open(os.path.join(frame_path,image))
-        mask = Image.open(os.path.join(mask_path,mask))
-        # 将蒙版图片转换为透明掩码模式
-        mask = mask.convert("L")
-        # 将原始图片应用蒙版
-        image.putalpha(mask)
-        # 保存合成后的图像为PNG格式，保留透明通道
-        image.save(image_out, "PNG")
-        print(imagename+"的透明版本已生成")
+        if image.endswith('.png') and mask.endswith('.png'):
+            image_out = os.path.join(frame_alpha_path, image)
+            imagename=image
+            image = Image.open(os.path.join(frame_path,image))
+            mask = Image.open(os.path.join(mask_path,mask))
+            # 将蒙版图片转换为透明掩码模式
+            mask = mask.convert("L")
+            # 将原始图片应用蒙版
+            image.putalpha(mask)
+            # 保存合成后的图像为PNG格式，保留透明通道
+            image.save(image_out, "PNG")
+            print(imagename+"的透明版本已生成")
 
     print("图生图的透明版本已生成，在video_remake的alpha目录下。")
 

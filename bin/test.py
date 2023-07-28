@@ -19,4 +19,6 @@ def ListCN():
     print(CN_list)
     return CN_list
 data = ListCN()
-print(data)
+print(data['control_types'])
+print(data['control_types']['All'])
+print(data['control_types']['Canny']['default_option'])

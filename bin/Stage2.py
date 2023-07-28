@@ -72,17 +72,20 @@ if len(txt_files) == 0:
     print("未找到任何提示词文件，请使用wd14-tagger插件（或其他类似功能）生成提示词，放入"+frame_path+"目录后重试。")
     quit()
 
-# 输入重绘幅度
+# 输入必要的参数
 denoising_strength = input("请输入重绘幅度，0 - 1之间：")
 print("重绘幅度为：" + denoising_strength)
 Mag = float(input("请输入图片缩小倍率，默认为1：") or 1)
 print("缩小倍率为：" + str(Mag))
+Set_Prompt = input("请输入正向提示词（可为空，由txt文件自动加载）：")
+Neg_Prompt = input("请输入反向提示词（可为空）：")
 
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
     txt_file = os.path.join(frame_path,txt)
     with open(txt_file, 'r') as t:
         tag = t.read()
+
 
     # 载入单张图片基本参数
     im = Image.open(frame_file)
@@ -91,7 +94,7 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("lineart_realistic", 0.7), # 第一个CN名称和权重
+        ("lineart_realistic", 0.4), # 第一个CN名称和权重
         ("tile_colorfix", 0.6), # 第二个
 ]
 
@@ -111,9 +114,8 @@ for frame, txt in zip(frame_files, txt_files):
     
     payload = {
         "init_images": [encoded_image],
-        "prompt": tag,  # 正向提示词，通过txt文件载入
-        # 反向提示词，暂时在这里写死
-        "negative_prompt": "(nsfw:2), badhandv4, ng_deepnegative_v1_75t,sketches, (worst quality:2), (low quality:2), (normal quality:2),normal quality, ((monochrome)), ((grayscale)), see-through, skin spots, acnes, skin blemishes, bad anatomy,DeepNegative,(fat:1.2),facing away, looking away,tilted head, bad anatomy,bad hands, text, error, missing fingers,extra digit, fewer digits, cropped, worst quality, low quality, normal quality,jpeg artifacts,signature, watermark, username,blurry,bad feet,cropped,poorly drawn hands,poorly drawn face,mutation,deformed,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,extra fingers,fewer digits,extra limbs,extra arms,extra legs,malformed limbs,fused fingers,too many fingers,long neck,cross-eyed,mutated hands,bad body,bad proportions,gross proportions,text,error,missing fingers,missing arms,missing legs,extra digit, extra arms, extra leg, extra foot",
+        "prompt": tag + "," + Set_Prompt,  # 正向提示词，固定提示词+通过txt文件载入
+        "negative_prompt": Neg_Prompt,  # 反向提示词
         "width": frame_w * Mag,   # 宽
         "height": frame_h * Mag,  # 高
         "denoising_strength": denoising_strength,   # 重绘比例
@@ -131,15 +133,15 @@ for frame, txt in zip(frame_files, txt_files):
 
     r = response.json()
 
-    for i in r['images']:
-        image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+    i = r['images'][0]
+    image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
 
-        png_payload = {
-            "image": "data:image/png;base64," + i
-        }
-        response2 = requests.post(url=f'{url}/sdapi/v1/png-info', json=png_payload)
-        pnginfo = PngImagePlugin.PngInfo()
-        pnginfo.add_text("parameters", response2.json().get("info"))
-        image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
-        print(frame+"生成完毕！")
+    png_payload = {
+        "image": "data:image/png;base64," + i
+    }
+    response2 = requests.post(url=f'{url}/sdapi/v1/png-info', json=png_payload)
+    pnginfo = PngImagePlugin.PngInfo()
+    pnginfo.add_text("parameters", response2.json().get("info"))
+    image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
+    print(frame+"生成完毕！")
 print("全部图片生成完毕！共计"+str(len(frame_files))+"张！")

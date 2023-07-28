@@ -24,21 +24,6 @@ if os.path.exists(out_path):
 if not os.path.exists(out_path):
     os.makedirs(out_path)
 
-# 创建CN栏位
-def createCNUnit(model, weight, threshold_a=None, guess=True):
-    cn = {
-        "module": model,
-        "model": ex_control_dict[model],
-        "weight": weight,
-    }
-    if threshold_a is not None:
-        cn.update({"threshold_a": threshold_a}) 
-    if guess:
-        cn.update({"control_mode": "ControlNet is more important"})
-    else:
-        cn.update({"control_mode": "Balanced"})
-    return cn
-
 # 轮询输入目录
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
 txt_files = [f for f in os.listdir(frame_path) if f.endswith('.txt')]
@@ -76,7 +61,25 @@ for frame, txt in zip(frame_files, txt_files):
         "denoising_strength": denoising_strength,
         #"sampler_index": "DPM++ 2M Karras",
         "batch_size": 1,
-        "steps": 20
+        "steps": 20,
+        "alwayson_scripts": {
+            "controlnet": {
+                "args": [
+                    {
+                        "input_image": encoded_image,
+                        "module": "lineart_realistic",  # 第一个CN的预处理器
+                        "model": "control_v11p_sd15_lineart [43d4be0d]",
+                        "weight": 0.7,  # 第一个CN的权重
+                    },
+                    {
+                        "input_image": encoded_image,
+                        "module": "tile_colorfix",  # 第二个CN的预处理器
+                        "model": "None",
+                        "weight": 0.6,  #第二个CN的权重
+                    }
+                ]
+            }
+        }
     }
     print(frame+"开始生成！生成尺寸为"+str(frame_w)+"x"+str(frame_h)+"像素")
 

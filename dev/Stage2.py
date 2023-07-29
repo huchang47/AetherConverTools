@@ -36,7 +36,7 @@ def get_CNmap():
         num+=1
     Choice2=int(input("请选择预处理器编号："))
     print("选择的是：",mod_dic[Choice2])
-    wei=input("请输入该ControlNet的权重：")
+    wei=float(input("请输入该ControlNet的权重："))
     Mode_name,Mod_name = mod_dic[Choice2],data[CN_model_map[Choice1]]["default_model"]
     return [Mode_name,Mod_name,wei]
 

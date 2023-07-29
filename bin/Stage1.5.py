@@ -29,7 +29,7 @@ def get_WDmap():
         print(str(num)+". ",i)
         num+=1
     Choice= int(input("请选择WD模型编号："))
-    print("选择的是",WD_model[Choice])
+    print("选择的是",WD_model[Choice],"缺少的模型会自动下载")
     return WD_model[Choice]
     
 # 定义wd14的参数

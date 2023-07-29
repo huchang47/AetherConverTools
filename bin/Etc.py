@@ -7,13 +7,16 @@ from PIL import Image
 folder_path = os.path.dirname(os.getcwd())
 # 定义输出图片和蒙版的目录
 frame_path = os.path.join(folder_path, "video_remake")
+original_path = os.path.join(folder_path, "video_frame_w")
 mask_path = os.path.join(frame_path, "mask")
 frame_alpha_path = os.path.join(frame_path, "alpha")
+upscale_path = os.path.join(frame_path, "upscale")
 
 # 选择周边功能
 print("请选择使用的周边功能")
 print("1. 图生图蒙版")
 print("2. 图生图透明背景")
+print("3. 图生图还原大小")
 choice = input("请输入周边功能编号：")
 
 if choice == '1':
@@ -71,20 +74,46 @@ elif choice == '2':
     
     for image,mask in zip(os.listdir(frame_path),os.listdir(mask_path)):
         # 打开两个文件
-        if image.endswith('.png') and mask.endswith('.png'):
-            image_out = os.path.join(frame_alpha_path, image)
-            imagename=image
-            image = Image.open(os.path.join(frame_path,image))
-            mask = Image.open(os.path.join(mask_path,mask))
-            # 将蒙版图片转换为透明掩码模式
-            mask = mask.convert("L")
-            # 将原始图片应用蒙版
-            image.putalpha(mask)
-            # 保存合成后的图像为PNG格式，保留透明通道
-            image.save(image_out, "PNG")
-            print(imagename+"的透明版本已生成")
+        image_out = os.path.join(frame_alpha_path, image)
+        imagename=image
+        image = Image.open(os.path.join(frame_path,image))
+        mask = Image.open(os.path.join(mask_path,mask))
+        # 将蒙版图片转换为透明掩码模式
+        mask = mask.convert("L")
+        # 将原始图片应用蒙版
+        image.putalpha(mask)
+        # 保存合成后的图像为PNG格式，保留透明通道
+        image.save(image_out, "PNG")
+        print(imagename+"的透明版本已生成")
 
     print("图生图的透明版本已生成，在video_remake的alpha目录下。")
+
+elif choice == '3':
+    # 读取新图和原图的列表
+    frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
+    original_files = [f for f in os.listdir(original_path) if f.endswith('.png')]
+
+    # 没有图的判断
+    if len(frame_files) == 0:
+        print("图生图的remake目录没有图，请检查后重试")
+        quit()
+    if len(original_files) == 0:
+        print("裁切图的video_frame_w目录没有图，请检查后重试")
+        quit()
+
+    # 放大目录存在就删除
+    if os.path.exists(upscale_path):
+        shutil.rmtree(upscale_path)
+    # 创建放大输出目录
+    os.makedirs(upscale_path)
+
+    for frame_file, original_file in zip(frame_files,original_files):
+        frame = Image.open(os.path.join(frame_path,frame_file))
+        original = Image.open(os.path.join(original_path,original_file))
+        #width, height = original.size
+        new_frame = frame.resize(original.size)
+        new_frame.save(os.path.join(upscale_path,frame_file))
+        print(f"{frame_file}的尺寸已重构为{original.size}")
 
 else:
     print("其他的功能还在一生悬命开发中，敬请期待，或找作者催更。")

@@ -19,8 +19,6 @@ def CNmodel_list(ex_url):
         body = json.loads(res.read())
     return requests.get(url)
 
-#r=CNmodel_list("/controlnet/control_types")
-
 # 定义ControlNet的模型对应字典
 ex_control_dict = {
     "softedge_pidinet" : "control_v11p_sd15_softedge [a8575a2a]",
@@ -79,6 +77,13 @@ Mag = float(input("请输入图片缩放倍率，默认为1：") or 1)
 print("缩放倍率为：" + str(Mag))
 Set_Prompt = input("请输入正向提示词（可为空，由txt文件自动加载）：")
 Neg_Prompt = input("请输入反向提示词（可为空）：")
+print("是否启用ADetailer进行脸部修复（请确保你正确安装了该插件，否则可能出错）？\n1. 是\n2. 否")
+ADe_type = input("请输入选择编号：")
+if ADe_type == '1':
+    Ade_Mod= 'mediapipe_face_full'  # 写死Ade调用的模型，别去选择了，差异不大。有特殊需求自己改这里。
+    print(f"使用ADetailer的{Ade_Mod}模型进行脸部修复")
+else:
+    Ade_Mod='None'
 
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
@@ -94,11 +99,17 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("none", 0.4), # 第一个CN名称和权重，新增就同样加一行
+        ("None", 0.4), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：第一个CN名称和权重，多个CN就同样加一行。
 ]
+    # 定义ADetailer的参数
+    Ade_args = [
+        {
+            "ad_model": Ade_Mod
+        }
+    ]
 
     # 轮询输出ControlNet的参数
-    if control_nets[0][0]== 'none':
+    if control_nets[0][0]== 'None':
         cn_args=[]
     else:
         cn_args = [
@@ -126,6 +137,9 @@ for frame, txt in zip(frame_files, txt_files):
         "alwayson_scripts": {
             "controlnet": {
                 "args": cn_args
+            },
+            "ADetailer": {
+                "args": Ade_args
             }
         }
     }

@@ -119,15 +119,6 @@ for file_name in png_files:
     
 print(f"原始坐标已保存至 {output_file_path}")
 
-# 坐标文件路径
-folder_path = os.path.dirname(os.getcwd())
-info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
-
-# 检查坐标文件是否存在
-if not os.path.isfile(info_file_path):
-    print("坐标文件不存在！")
-    exit()
-
 # 创建输出文件夹
 frame_out_folder = frame_path+"_w"
 frame_out_folder_path = os.path.join(folder_path, frame_out_folder)
@@ -139,7 +130,7 @@ if not os.path.exists(frame_out_folder_path):
     os.makedirs(frame_out_folder_path)
 
 # 读取坐标文件
-with open(info_file_path, 'r') as info_file:
+with open(output_file_path, 'r') as info_file:
     lines = info_file.read().splitlines()
 
 # 开始裁切视频帧
@@ -165,7 +156,7 @@ for file, line in zip(os.listdir(mask_path), lines):
         print("蒙版"+file+"裁切完成！")
 
 Choice=input("\n\n\n是否开始反推提示词？\n1. 是\n2. 否\n请输入你选择的编号：")
-if Choice == 1:
+if Choice == '1':
     subprocess.run(["python", "Stage1.5.py"])  # 执行Stage1.5.py文件
 
 print("当前步骤操作完毕，第一步完成！\n请进行第二步图生图！")

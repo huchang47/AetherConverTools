@@ -2,7 +2,6 @@ import subprocess
 import os
 import torch
 import shutil
-import cv2
 
 # 定义需要处理的视频文件路径
 folder_path = os.path.dirname(os.getcwd())
@@ -12,7 +11,7 @@ video_file = os.path.join(folder_path, "video.mp4")
 frame_out_dir = os.path.join(folder_path, "video_frame")
 mask_out_dir = os.path.join(folder_path, "video_mask")
 
-
+print("检测是否有可用的CUDA设备中……")
 # 检查是否有可用的CUDA设备
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -36,6 +35,12 @@ if os.path.exists(frame_out_dir):
 # 创建帧输出目录
 os.makedirs(frame_out_dir)
 
+# 设置Torch不使用图形界面显示
+os.environ["PYTORCH_JIT"] = "1"
+
+# 使用CUDA进行加速
+torch.set_grad_enabled(False)
+
 # 使用 ffmpeg 命令行工具截取视频帧，并将其保存为图片
 subprocess.call([  
     "ffmpeg", "-i", video_file, 
@@ -48,7 +53,7 @@ print("\n\n视频转帧步骤已完成！码率为： "+str(fps))
 # 生成蒙版
 print("\n\n是否同步生成蒙版？")
 print("1. 生成")
-print("2. 不生成")
+print("2. 不生成（后续步骤需要，可自行生成后放入Mask目录）")
 choice = input("请输入是否生成蒙版：")
 
 if choice == '1':

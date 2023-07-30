@@ -165,7 +165,7 @@ for file, line in zip(os.listdir(mask_path), lines):
         print("蒙版"+file+"裁切完成！")
 
 Choice=input("\n\n\n是否开始反推提示词？\n1. 是\n2. 否\n请输入你选择的编号：")
-
-subprocess.run(["python", "Stage1.5.py"])  # 执行Stage1.5.py文件
+if Choice == 1:
+    subprocess.run(["python", "Stage1.5.py"])  # 执行Stage1.5.py文件
 
 print("当前步骤操作完毕，第一步完成！\n请进行第二步图生图！")

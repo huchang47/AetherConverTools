@@ -72,7 +72,7 @@ for frame in frame_files:
         json_data = response.json()
         # 处理返回的JSON数据
         caption_dict = json_data['caption']
-        sorted_items = sorted([(k, v) for k, v in caption_dict.items() if float(v/100) > threshold], key=lambda x: x[1], reverse=True)
+        sorted_items = sorted([(k, v) for k, v in caption_dict.items() if float(v) > threshold], key=lambda x: x[1], reverse=True)
         txt = ','.join([f'{k}' for k, v in sorted_items])
 
         # 创建提示词txt文件

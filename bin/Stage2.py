@@ -75,8 +75,8 @@ if len(txt_files) == 0:
 # 输入必要的参数
 denoising_strength = input("请输入重绘幅度，0 - 1之间：")
 print("重绘幅度为：" + denoising_strength)
-Mag = float(input("请输入图片缩小倍率，默认为1：") or 1)
-print("缩小倍率为：" + str(Mag))
+Mag = float(input("请输入图片缩放倍率，默认为1：") or 1)
+print("缩放倍率为：" + str(Mag))
 Set_Prompt = input("请输入正向提示词（可为空，由txt文件自动加载）：")
 Neg_Prompt = input("请输入反向提示词（可为空）：")
 

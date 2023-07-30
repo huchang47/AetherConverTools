@@ -4,25 +4,33 @@ from PIL import Image
 # 获取当前文件夹路径
 folder_path = os.path.dirname(os.getcwd())
 frame_path = os.path.join(folder_path, "video_frame")  #定义原始图像文件夹
+alpha_path = os.path.join(frame_path,"alpha")   # 定义透明图像文件夹
 
 # 坐标文件路径
-info_file_path1 = os.path.join(folder_path,"bin","原始坐标.txt")
-info_file_path2 = os.path.join(folder_path,"bin","改造坐标.txt")
+info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
 
-# 检查坐标文件是否存在
-if not os.path.isfile(info_file_path1) and not os.path.isfile(info_file_path2):
-    print("覆盖信息文件均不存在！请检查后重试！")
+# 选择用什么图融合
+print("请选择使用怎样的图进行融合：\n1. 图生图标准图像\n2. 透明背景图像（需先执行Etc中的透明操作）")
+Choice=input("你选择使用怎样的图像呢：")
+if Choice == '1':
+    work_path = frame_path
+else:
+    work_path = alpha_path
+
+# 判断图是否存在
+try:
+    png_files = [file for file in os.listdir(work_path) if file.endswith('.png')]
+except Exception as e:
+    print(f"你还没有{work_path}这个文件夹，请检查后重试")
+    quit()
+if len(png_files) == 0:
+    print("你选择的图像目录中没有任何PNG图片，请检查后重试")
     quit()
 
-# 确定裁切方式
-with open('原始坐标.txt', 'r') as f:
-    lines = f.readlines()
-    last_line = lines[-1].strip()
-    if last_line.startswith('Choose me'):
-        map_file="原始坐标.txt"
-    else:
-        map_file="改造坐标.txt"
-info_file_path=os.path.join(folder_path,"bin",map_file)
+# 检查坐标文件是否存在
+if not os.path.isfile(info_file_path):
+    print("覆盖信息文件均不存在！请检查后重试！")
+    quit()
 
 # 竖版图生图文件夹路径
 overlay_folder_path = os.path.join(folder_path, "video_remake")
@@ -37,9 +45,9 @@ with open(info_file_path, 'r') as info_file:
     lines = info_file.readlines()
 
 # 开始遍历融合
-for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(overlay_folder_path),lines):
+for frame,frame_w, line in zip(png_files, os.listdir(overlay_folder_path),lines):
     if frame.endswith('.png'):
-        frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA")
+        frame = Image.open(os.path.join(work_path, frame)).convert("RGBA")
         filename, left, top, right, bottom = map(str, line.split(','))
         overlay = Image.open(os.path.join(overlay_folder_path, frame_w)).convert("RGBA")
         frame.paste(overlay, (int(left), int(top)), mask=overlay)

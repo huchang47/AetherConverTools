@@ -94,23 +94,25 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("lineart_realistic", 0.4), # 第一个CN名称和权重
-        ("tile_colorfix", 0.6), # 第二个
+        ("none", 0.4), # 第一个CN名称和权重，新增就同样加一行
 ]
 
     # 轮询输出ControlNet的参数
-    cn_args = [
-        {
-            "input_image": encoded_image,
-            "module": cn[0], 
-            "model": ex_control_dict[cn[0]],
-            "weight": cn[1], 
-            "resize_mode": 0,   # 缩放模式，0调整大小、1裁剪后缩放、2缩放后填充空白
-            "processor_res": 64,
-            "pixel_perfect": True,  # 完美像素模式
-            "control_mode": 0,  # 控制模式，0均衡、1偏提示词、2偏CN
-        } for cn in control_nets
-    ]
+    if control_nets[0][0]== 'none':
+        cn_args=[]
+    else:
+        cn_args = [
+            {
+                "input_image": encoded_image,
+                "module": cn[0], 
+                "model": ex_control_dict[cn[0]],
+                "weight": cn[1], 
+                "resize_mode": 0,   # 缩放模式，0调整大小、1裁剪后缩放、2缩放后填充空白
+                "processor_res": 64,
+                "pixel_perfect": True,  # 完美像素模式
+                "control_mode": 0,  # 控制模式，0均衡、1偏提示词、2偏CN
+            } for cn in control_nets
+        ]
     
     payload = {
         "init_images": [encoded_image],

@@ -104,7 +104,8 @@ for frame, txt in zip(frame_files, txt_files):
     # 定义ADetailer的参数
     Ade_args = [
         {
-            "ad_model": Ade_Mod
+            "ad_model": Ade_Mod,
+            "ad_confidence": 0.5,
         }
     ]
 

@@ -4,7 +4,7 @@ from PIL import Image
 # 获取当前文件夹路径
 folder_path = os.path.dirname(os.getcwd())
 frame_path = os.path.join(folder_path, "video_frame")  #定义原始图像文件夹
-alpha_path = os.path.join(frame_path,"alpha")   # 定义透明图像文件夹
+alpha_path = os.path.join(folder_path,"video_remake","alpha")   # 定义透明图像文件夹
 
 # 坐标文件路径
 info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
@@ -45,13 +45,13 @@ with open(info_file_path, 'r') as info_file:
     lines = info_file.readlines()
 
 # 开始遍历融合
-for frame,frame_w, line in zip(png_files, os.listdir(overlay_folder_path),lines):
+for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(overlay_folder_path),lines):
     if frame.endswith('.png'):
-        frame = Image.open(os.path.join(work_path, frame)).convert("RGBA")
-        filename, left, top, right, bottom = map(str, line.split(','))
-        overlay = Image.open(os.path.join(overlay_folder_path, frame_w)).convert("RGBA")
-        frame.paste(overlay, (int(left), int(top)), mask=overlay)
-        frame.save(os.path.join(output_folder_path, frame_w))
+        frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA") # 打开原图
+        filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标
+        overlay = Image.open(os.path.join(work_path, frame_w)).convert("RGBA")  # 打开新图
+        frame.paste(overlay, (int(left), int(top)), mask=overlay)   # 贴进去
+        frame.save(os.path.join(output_folder_path, frame_w))   # 保存
         print(frame_w+"融合完成！")
 
 print("所有新图已融入原图，第三步完成！")

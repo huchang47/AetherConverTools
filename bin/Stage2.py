@@ -123,6 +123,8 @@ for frame, txt in zip(frame_files, txt_files):
                 "processor_res": 64,
                 "pixel_perfect": True,  # 完美像素模式
                 "control_mode": 0,  # 控制模式，0均衡、1偏提示词、2偏CN
+                "guidance_start": 0.0,  # 引导介入时机
+                "guidance_end": 1.0,    # 引导终止时机
             } for cn in control_nets
         ]
     

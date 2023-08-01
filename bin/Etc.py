@@ -1,5 +1,6 @@
 import os
 import subprocess
+import torch
 import shutil
 from PIL import Image
 
@@ -8,99 +9,30 @@ folder_path = os.path.dirname(os.getcwd())
 # 定义输出图片和蒙版的目录
 frame_path = os.path.join(folder_path, "video_remake")
 original_path = os.path.join(folder_path, "video_frame_w")
-mask_path = os.path.join(frame_path, "mask")
-frame_alpha_path = os.path.join(frame_path, "alpha")
+alpha_path = os.path.join(frame_path, "alpha")
 upscale_path = os.path.join(frame_path, "upscale")
 
-# 选择周边功能
-print("请选择使用的周边功能")
-print("1. 图生图蒙版")
-print("2. 图生图透明背景")
-print("3. 图生图还原大小")
-choice = input("请输入周边功能编号：")
-
-if choice == '1':
-    print("开始将图生图生成蒙版：")
-
-    # 蒙版目录存在就删除
-    if os.path.exists(mask_path):
-        shutil.rmtree(mask_path)
-    # 创建蒙版输出目录
-    os.makedirs(mask_path)
-
-    print("生成！拆解一切，启动！")
-    print("\n选择蒙版生成算法")
-    print("1. 快速，速度快但质量稍差")
-    print("2. 标准，质量更好")
-
-    # 选择蒙版生成模式
-    choice2 = input("请输入蒙版算法的编号：")
-    if choice2 == '1':
-        print("你选择了快速模式")
-        print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--source',frame_path,'--dest',mask_path,'--type','map','--fast'])
-    else:
-        print("你选择了标准模式")
-        print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--source',frame_path,'--dest',mask_path,'--type','map'])
-    # 开始修正蒙版名称
-    files = sorted(os.listdir(mask_path))
-    # 遍历文件列表
-    for filename in files:
-        if filename.lower().endswith('.png'):
-            file_name,n1 = map(str, filename.split('_'))
-            new_file = f'{file_name}.png'
-
-            # 构建文件完整路径
-            file_path = os.path.join(mask_path, filename)
-            new_file_path = os.path.join(mask_path, new_file)
-
-            # 重命名文件
-            os.rename(file_path, new_file_path)
-    print("图生图的新蒙版已生成，在video_remake的mask目录下。")
-
-elif choice == '2':
-    print("开始图生图透明背景：")
-    # 检查蒙版文件是否存在
-    if not os.listdir(folder_path):
-        print("蒙版文件不存在！")
-        quit()
-
-    # 透明目录存在就删除
-    if os.path.exists(frame_alpha_path):
-        shutil.rmtree(frame_alpha_path)
-    # 创建透明输出目录
-    os.makedirs(frame_alpha_path)
+print("检测是否有可用的CUDA设备中……")
+# 检查是否有可用的CUDA设备
+if torch.cuda.is_available():
+    device = 'cuda'
+    print("加速成功！使用的设备：CUDA")
+else:
+    device = 'cpu'
+    print("加速失败！使用的设备：CPU")
     
-    for image,mask in zip(os.listdir(frame_path),os.listdir(mask_path)):
-        if image.endswith('.png'):
-            if mask.endswith('.png'):
-                # 打开两个文件
-                image_out = os.path.join(frame_alpha_path, image)
-                imagename=image
-                image = Image.open(os.path.join(frame_path,image))
-                mask = Image.open(os.path.join(mask_path,mask))
-                # 将蒙版图片转换为透明掩码模式
-                mask = mask.convert("L")
-                # 将原始图片应用蒙版
-                image.putalpha(mask)
-                # 保存合成后的图像为PNG格式，保留透明通道
-                image.save(image_out, "PNG")
-                print(imagename+"的透明版本已生成")
-
-    print("图生图的透明版本已生成，在video_remake的alpha目录下。")
-
-elif choice == '3':
+# 定义缩放图像大小函数
+def image_resize(frame_path,original_path,upscale_path):
     # 读取新图和原图的列表
     frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
     original_files = [f for f in os.listdir(original_path) if f.endswith('.png')]
 
     # 没有图的判断
     if len(frame_files) == 0:
-        print("图生图的remake目录没有图，请检查后重试")
+        print(f"{frame_path}目录没有图，请检查后重试")
         quit()
     if len(original_files) == 0:
-        print("裁切图的video_frame_w目录没有图，请检查后重试")
+        print(f"{original_path}目录没有图，请检查后重试")
         quit()
 
     # 放大目录存在就删除
@@ -116,6 +48,62 @@ elif choice == '3':
         new_frame = frame.resize(original.size)
         new_frame.save(os.path.join(upscale_path,frame_file))
         print(f"{frame_file}的尺寸已重构为{original.size}")
+
+# 定义生成透明图片函数
+def image_alpha(frame_path,alpha_path):
+    print("开始将图生图生成蒙版：")
+
+    # 透明目录存在就删除
+    if os.path.exists(alpha_path):
+        shutil.rmtree(alpha_path)
+    # 透明图片输出目录
+    os.makedirs(alpha_path)
+
+    print("生成！拆解一切，启动！\n选择蒙版生成算法：\n1. 快速，速度快但质量稍差\n2. 标准，质量更好")
+
+    # 选择蒙版生成模式
+    choice2 = input("请输入蒙版算法的编号：")
+    if choice2 == '1':
+        print("你选择了快速模式")
+        print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
+        subprocess.run(['transparent-background','--device',device,'--source',frame_path,'--dest',alpha_path,'--type','rgba','--fast'])
+    else:
+        print("你选择了标准模式")
+        print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
+        subprocess.run(['transparent-background','--device',device,'--source',frame_path,'--dest',alpha_path,'--type','rgba'])
+    # 开始修正图像名称
+    files = sorted(os.listdir(alpha_path))
+    # 遍历文件列表
+    for filename in files:
+        if filename.lower().endswith('.png'):
+            file_name,n1 = map(str, filename.split('_'))
+            new_file = f'{file_name}.png'
+
+            # 构建文件完整路径
+            file_path = os.path.join(alpha_path, filename)
+            new_file_path = os.path.join(alpha_path, new_file)
+
+            # 重命名文件
+            os.rename(file_path, new_file_path)
+    print(f"图生图的透明背景图已生成，在{frame_path}的{alpha_path}目录内。")
+    
+
+# 选择周边功能
+print("请选择使用的周边功能")
+print("1. 图生图还原大小")
+print("2. 图生图透明背景")
+print("3. 我全都要！")
+choice = input("请输入周边功能编号：")
+
+if choice == '1':
+    image_resize(frame_path,original_path,upscale_path)
+
+elif choice == '2':
+    image_alpha(frame_path,alpha_path)
+
+elif choice == '3':
+    image_resize(frame_path,original_path,upscale_path)
+    image_alpha(frame_path,alpha_path)
 
 else:
     print("其他的功能还在一生悬命开发中，敬请期待，或找作者催更。")

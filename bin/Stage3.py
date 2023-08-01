@@ -4,6 +4,7 @@ from PIL import Image
 # 获取当前文件夹路径
 folder_path = os.path.dirname(os.getcwd())
 frame_path = os.path.join(folder_path, "video_frame")  #定义原始图像文件夹
+remake_path = os.path.join(folder_path, "video_remake")  #定义原始图像文件夹
 alpha_path = os.path.join(folder_path,"video_remake","alpha")   # 定义透明图像文件夹
 
 # 坐标文件路径
@@ -13,7 +14,7 @@ info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
 print("请选择使用怎样的图进行融合：\n1. 图生图标准图像\n2. 透明背景图像（需先执行Etc中的透明操作）")
 Choice=input("你选择使用怎样的图像呢：")
 if Choice == '1':
-    work_path = frame_path
+    work_path = remake_path
 else:
     work_path = alpha_path
 

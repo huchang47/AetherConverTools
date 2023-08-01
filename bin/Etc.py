@@ -73,18 +73,20 @@ elif choice == '2':
     os.makedirs(frame_alpha_path)
     
     for image,mask in zip(os.listdir(frame_path),os.listdir(mask_path)):
-        # 打开两个文件
-        image_out = os.path.join(frame_alpha_path, image)
-        imagename=image
-        image = Image.open(os.path.join(frame_path,image))
-        mask = Image.open(os.path.join(mask_path,mask))
-        # 将蒙版图片转换为透明掩码模式
-        mask = mask.convert("L")
-        # 将原始图片应用蒙版
-        image.putalpha(mask)
-        # 保存合成后的图像为PNG格式，保留透明通道
-        image.save(image_out, "PNG")
-        print(imagename+"的透明版本已生成")
+        if image.endswith('.png'):
+            if mask.endswith('.png'):
+                # 打开两个文件
+                image_out = os.path.join(frame_alpha_path, image)
+                imagename=image
+                image = Image.open(os.path.join(frame_path,image))
+                mask = Image.open(os.path.join(mask_path,mask))
+                # 将蒙版图片转换为透明掩码模式
+                mask = mask.convert("L")
+                # 将原始图片应用蒙版
+                image.putalpha(mask)
+                # 保存合成后的图像为PNG格式，保留透明通道
+                image.save(image_out, "PNG")
+                print(imagename+"的透明版本已生成")
 
     print("图生图的透明版本已生成，在video_remake的alpha目录下。")
 

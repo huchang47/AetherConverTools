@@ -35,6 +35,12 @@ if os.path.exists(frame_out_dir):
 # 创建帧输出目录
 os.makedirs(frame_out_dir)
 
+# 设置Torch不使用图形界面显示
+os.environ["PYTORCH_JIT"] = "1"
+
+# 使用CUDA进行加速
+torch.set_grad_enabled(False)
+
 # 使用 ffmpeg 命令行工具截取视频帧，并将其保存为图片
 subprocess.call([  
     "ffmpeg", "-i", video_file, 

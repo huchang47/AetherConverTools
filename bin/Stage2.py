@@ -19,6 +19,24 @@ def CNmodel_list(ex_url):
         body = json.loads(res.read())
     return requests.get(url)
 
+# 定义CN模型数据接口
+def ListCN():
+    cn_url = url + "/controlnet/control_types"
+    CN_list = requests.get(url=cn_url).json()
+    return CN_list
+
+# 定义获取本地CN数据函数
+def get_CNmap():
+    control_dict={}
+    data=ListCN()["control_types"]
+    for k in data:
+        if k!="All":
+            for p in data[k]["module_list"]:
+                if p!= "none":
+                    control_dict[p] = data[k]["default_model"]
+    return control_dict
+    
+
 # 定义输入文件夹
 folder_path = os.path.dirname(os.getcwd())
 mask_path = os.path.join(folder_path, "video_mask_w")    #定义蒙版文件夹
@@ -67,23 +85,8 @@ else:
     Ade_Mod='None'
 
 # 定义ControlNet的模型对应字典
-ex_control_dict = {
-    "softedge_pidinet" : "control_v11p_sd15_softedge [a8575a2a]",
-    "canny" : "control_v11p_sd15_canny [d14c016b]",
-    "openpose_full" : "control_v11p_sd15_openpose [cab727d4]",
-    "openpose" : "control_v11p_sd15_openpose [cab727d4]",    
-    "depth_midas": "control_v11f1p_sd15_depth [cfd03158]",
-    "depth_zoe": "control_v11f1p_sd15_depth [cfd03158]",    
-    "lineart_realistic": "control_v11p_sd15_lineart [43d4be0d]",    
-    "lineart_anime": "control_v11p_sd15s2_lineart_anime [3825e83e]",        
-    "normal_bae": "control_v11p_sd15_normalbae [316696f1]",
-    "inpainting_global_harmonious": "controlnet_v11p_sd15_inpaint [ebff9138]",
-    "tile_resample": "control_v11f1e_sd15_tile [a371b31b]",
-    "tile_colorfix": "control_v11f1e_sd15_tile [a371b31b]",
-    "tile_colorfix+sharp": "control_v11f1e_sd15_tile [a371b31b]",    
-    "reference_only": "None",
-    "reference_adain+attn": "None"
-}
+control_dict= get_CNmap()
+print(control_dict)
 
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
@@ -101,8 +104,8 @@ for frame, txt in zip(frame_files, txt_files):
 
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("lineart_realistic", 0.6), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
-        ("tile_colorfix", 0.6),
+        ("lineart_realistic", 0.6,0), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
+        ("tile_colorfix", 0.6,8),
     ]
     # 定义ADetailer的参数
     Ade_args = [
@@ -121,8 +124,9 @@ for frame, txt in zip(frame_files, txt_files):
             {
                 "input_image": encoded_image,
                 "module": cn[0], 
-                "model": ex_control_dict[cn[0]],
+                "model": control_dict[cn[0]],
                 "weight": cn[1], 
+                "threshold_a": cn[2],
                 "resize_mode": 0,   # 缩放模式，0调整大小、1裁剪后缩放、2缩放后填充空白
                 "processor_res": 64,
                 "pixel_perfect": True,  # 完美像素模式

@@ -40,7 +40,7 @@ def get_WDmap():
     
 # 定义wd14的参数
 model = get_WDmap()
-threshold = 0.35    # 识别强度阈值，可自行调整
+threshold = 0.5    # 识别强度阈值，可自行调整
 
 # 定义图片转base64函数
 def img_str(image):
@@ -86,7 +86,7 @@ for frame in frame_files:
         txt = ','.join([f'{k}' for k, v in sorted_items])
 
         # 创建提示词txt文件
-        txt_file=os.path.join(frame_path,f'{frame_file.split(".")[0]}.txt')
+        txt_file=os.path.join(frame_path,f'{os.path.splitext(frame_file)[0]}.txt')
         with open(txt_file, 'w', encoding='utf-8') as tags:
             tags.write(txt)
         print(f'{frame}的提示词反推完成，提取{len(sorted_items)}个tag')

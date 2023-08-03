@@ -14,10 +14,10 @@ mask_out_dir = os.path.join(folder_path, "video_mask")
 print("检测是否有可用的CUDA设备中……")
 # 检查是否有可用的CUDA设备
 if torch.cuda.is_available():
-    device = 'cuda'
+    device = torch.device("cuda")
     print("加速成功！使用的设备：CUDA")
 else:
-    device = 'cpu'
+    device = torch.device("cpu")
     print("加速失败！使用的设备：CPU")
 
 # 蒙版目录存在就删除
@@ -34,6 +34,12 @@ if os.path.exists(frame_out_dir):
     shutil.rmtree(frame_out_dir)
 # 创建帧输出目录
 os.makedirs(frame_out_dir)
+
+# 设置Torch不使用图形界面显示
+os.environ["PYTORCH_JIT"] = "1"
+
+# 使用CUDA进行加速
+torch.set_grad_enabled(False)
 
 # 使用 ffmpeg 命令行工具截取视频帧，并将其保存为图片
 subprocess.call([  
@@ -61,11 +67,11 @@ if choice == '1':
     if choice2 == '1':
         print("你选择了快速模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--device',device,'--source',frame_out_dir,'--dest',mask_out_dir,'--type','map','--fast'])
+        subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map','--fast'])
     else:
         print("你选择了标准模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--device',device,'--source',frame_out_dir,'--dest',mask_out_dir,'--type','map'])
+        subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map'])
 elif choice == '2':
     print("不生成。")
     print("已经结束咧！")

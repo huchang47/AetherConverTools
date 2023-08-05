@@ -49,6 +49,17 @@ def img_str(image):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return img_str
 
+# 定义智能倍率函数
+def Get_Vam(image,tar_size):
+    img=Image.open(image)
+    w,h=img.size
+    ratio_o=w/h
+    if ratio_o>=1: # 横屏
+        New_ratio=tar_size/w
+    else:   #竖屏
+        New_ratio=tar_size/h
+    return New_ratio
+
 # 图生图输出文件夹
 out_path = os.path.join(folder_path, "video_remake")
 # 蒙版文件夹存在就删除
@@ -70,14 +81,24 @@ if len(txt_files) == 0:
     quit()
 
 # 输入必要的参数
-denoising_strength = input("请输入重绘幅度，0 - 1之间：")
+denoising_strength = input("请输入重绘幅度，0 - 1之间：") or 1
 print("重绘幅度为：" + denoising_strength)
-Mag = float(input("请输入图片缩放倍率，默认为1：") or 1)
-print("缩放倍率为：" + str(Mag))
-Set_Prompt = input("请输入正向提示词（可为空，由txt文件自动加载）：")
+Choice=input("\n是否使用智能动态倍率（指定一个尺寸，智能调整每张图输出时向该尺寸趋近）？\n1. 是\n2. 否\n请输入你的选择：")
+if Choice == '1':
+    vam_status = True
+    try:
+        target = int(input("\n请根据自身需求和显卡实力输入目标分辨率（720或1080或更高，默认720）："))
+    except ValueError:
+        target = 720  # 默认值
+else:
+    vam_status = False
+if not vam_status:
+    Mag = float(input("请输入图片固定缩放倍率，默认为1：") or 1)
+    print("固定缩放倍率为：" + str(Mag))
+Set_Prompt = input("\n请输入正向提示词（可为空，由txt文件自动加载）：")
 Neg_Prompt = input("请输入反向提示词（可为空）：")
-print("是否启用ADetailer进行脸部修复（请确保你正确安装了该插件，否则可能出错）？\n1. 是\n2. 否")
-ADe_type = input("请输入选择编号：")
+print("\n是否启用ADetailer进行脸部修复（请确保你正确安装了该插件，否则可能出错）？\n1. 是\n2. 否")
+ADe_type = input("请输入选择编号：") 
 if ADe_type == '1':
     Ade_Mod= 'mediapipe_face_full'  # 写死Ade调用的模型，别去选择了，差异不大。有特殊需求自己改这里。
     print(f"使用ADetailer的{Ade_Mod}模型进行脸部修复")
@@ -86,13 +107,15 @@ else:
 
 # 定义ControlNet的模型对应字典
 control_dict= get_CNmap()
-print(control_dict)
+# print(control_dict)
 
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
     txt_file = os.path.join(frame_path,txt)
     with open(txt_file, 'r') as t:
         tag = t.read()
+    if vam_status:
+        Mag=Get_Vam(frame_file,target)
 
 
     # 载入单张图片基本参数
@@ -100,11 +123,9 @@ for frame, txt in zip(frame_files, txt_files):
     encoded_image = img_str(im)
     frame_w,frame_h = im.size
 
-
-
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("lineart_realistic", 0.6,0), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
+        ("lineart_realistic", 0.3,0), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
         ("tile_colorfix", 0.6,8),
     ]
     # 定义ADetailer的参数
@@ -143,8 +164,11 @@ for frame, txt in zip(frame_files, txt_files):
         "width": frame_w * Mag,   # 宽
         "height": frame_h * Mag,  # 高
         "denoising_strength": denoising_strength,   # 重绘比例
+        "sampler_name": "Euler a",  # 采样方法
         "batch_size": 1,    # 生成张数，别改，只会留下最后一张
-        "steps": 20,    # 迭代步数
+        "steps": 30,    # 迭代步数
+        "cfg_scale": 7, # 提示词引导系数（CFG）
+        "seed": -1, # 种子，默认随机
         "alwayson_scripts": {
             "controlnet": {
                 "args": cn_args
@@ -168,7 +192,7 @@ for frame, txt in zip(frame_files, txt_files):
     }
     response2 = requests.post(url=f'{url}/sdapi/v1/png-info', json=png_payload)
     pnginfo = PngImagePlugin.PngInfo()
-    pnginfo.add_text("parameters", response2.json().get("info"))
+    pnginfo.add_text("Parameters: ", response2.json().get("info"))
     image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
     print(frame+"生成完毕！")
 print("全部图片生成完毕！共计"+str(len(frame_files))+"张！")

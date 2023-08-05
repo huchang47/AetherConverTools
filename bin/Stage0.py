@@ -20,6 +20,12 @@ else:
     device = torch.device("cpu")
     print("加速失败！使用的设备：CPU")
 
+# 帧目录存在就删除
+if os.path.exists(frame_out_dir):
+    shutil.rmtree(frame_out_dir)
+# 创建帧输出目录
+os.makedirs(frame_out_dir)
+
 # 蒙版目录存在就删除
 if os.path.exists(mask_out_dir):
     shutil.rmtree(mask_out_dir)
@@ -28,12 +34,6 @@ os.makedirs(mask_out_dir)
 
 # 定义帧率（这里设置为每秒截取15帧）
 fps = input("请输入想要输出的视频帧率（默认15）：") or 15
-
-# 帧目录存在就删除
-if os.path.exists(frame_out_dir):
-    shutil.rmtree(frame_out_dir)
-# 创建帧输出目录
-os.makedirs(frame_out_dir)
 
 # 设置Torch不使用图形界面显示
 os.environ["PYTORCH_JIT"] = "1"

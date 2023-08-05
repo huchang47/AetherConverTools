@@ -109,7 +109,7 @@ elif choice == '2':
 
 elif choice == '3':
     image_resize(frame_path,original_path,upscale_path)
-    image_alpha(frame_path,alpha_path)
+    image_alpha(upscale_path,alpha_path)
 
 else:
     print("其他的功能还在一生悬命开发中，敬请期待，或找作者催更。")

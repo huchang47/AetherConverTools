@@ -3,10 +3,17 @@
 - 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
 - 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)和[Segment-Anything](https://github.com/continue-revolution/sd-webui-segment-anything)使用，可获得更好的效果。
 
-# 安装
-下载项目后，需要`python>=3.8`环境，以及其他一些必要的组件，待后续完善补充。
-理论上你可以正常使用`Stable Diffusion`，就没有什么问题。
-部分缺少的组件会自动安装。
+## 环境安装：
+1. 安装``Python环境``，版本大于3.10.8。[官方下载页面](https://www.python.org/downloads/)
+2. 运行``双击安装必要组件.bat``，安装Python下会用到的组件
+3. 安装``FFMpeg``，注意需要将路径添加为系统变量，[官方下载页面](https://github.com/BtbN/FFmpeg-Builds/releases)
+4. 生成蒙版和透明时如果报错，请在``C:\Users\你的用户名\.transparent-background``查看是否有2个350m大小的模型文件，理论上他们会自动下载，但会因为网络问题下载不成功。
+
+## 素材准备：
+0. 将视频文件命名为``video.mp4``，放在工作流根目录，运行``Stage0_视频转帧(可选).bat``生成帧文件和蒙版文件
+1. （可选）用你习惯的方式，生成视频的帧文件（或关键帧），放入名为``video_frame``的文件夹
+2. （可选）用你习惯的方式，生成对应帧的蒙版文件，放入``video_mask``
+3. 上述两个文件夹内的文件，保证都是png文件，且文件名一一对应
 
 ## 执行步骤：
 1. 运行``Stage1_横裁竖.bat``文件，等待运行结束（有CUDA会得到加速）,可选择同步反推提示词文件
@@ -17,9 +24,3 @@
 	4.2  生成透明背景图像，放入alpha文件夹
 5. 运行``Stage3_竖进横.bat``文件，``video_remake``文件夹内的图像，融合回``video_frame``的图像中，生成的文件在``video_frame_Done``中
 6. 运行``Stage4_生成视频.bat``文件，将``video_frame_Done``文件夹内的成品图片合成为视频，最终成品为``video_Done.mp4``
-
-## 可选步骤：
-1. 素材准备可通过``Stage0_视频转帧(可选).bat``直接生成，无需借助其他工具
-
-## 后续工作：
-1. 用你习惯的方式，将``video_Done.mp4``视频做进一步编辑。

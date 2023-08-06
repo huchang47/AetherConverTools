@@ -50,14 +50,23 @@ def img_str(image):
     return img_str
 
 # 定义智能倍率函数
-def Get_Vam(image,tar_size):
+def Get_Vam(image,tar_size,types):
     img=Image.open(image)
     w,h=img.size
     ratio_o=w/h
-    if ratio_o>=1: # 横屏
-        New_ratio=tar_size/w
-    else:   #竖屏
-        New_ratio=tar_size/h
+    if types == "1":
+        # 最大方案：将长边缩放到该尺寸
+        if ratio_o>=1: # 横屏
+            New_ratio=tar_size/w
+        else:   #竖屏
+            New_ratio=tar_size/h
+    else:
+        # 最小方案：将短边缩小到该尺寸，原本就小的不调整
+        min_size = min(w,h,tar_size)
+        if min_size == tar_size:
+            New_ratio = tar_size/min(w,h)
+        else:
+            New_ratio = 1
     return New_ratio
 
 # 图生图输出文件夹
@@ -90,6 +99,10 @@ if Choice == '1':
         target = int(input("\n请根据自身需求和显卡实力输入目标分辨率（720或1080或更高，默认720）："))
     except ValueError:
         target = 720  # 默认值
+    try:
+        types = int(input("\n请选择智能动态倍率的方案：\n1. 长边缩放方案（大图小图的长边都缩放到该尺寸）\n2. 短边缩小方案（大图的短边缩小，小图不调整）\n请输入你的选择："))
+    except ValueError:
+        types = 1  # 默认值
 else:
     vam_status = False
 if not vam_status:
@@ -115,7 +128,7 @@ for frame, txt in zip(frame_files, txt_files):
     with open(txt_file, 'r') as t:
         tag = t.read()
     if vam_status:
-        Mag=Get_Vam(frame_file,target)
+        Mag=Get_Vam(frame_file,target,types)
 
 
     # 载入单张图片基本参数

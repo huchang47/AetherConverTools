@@ -26,9 +26,10 @@ os.environ["PYTORCH_JIT"] = "1"
 
 # 使用CUDA进行加速
 torch.set_grad_enabled(False)
-    
+
+
 # 定义缩放图像大小函数
-def image_resize(frame_path,original_path,upscale_path):
+def image_resize(frame_path, original_path, upscale_path):
     # 读取新图和原图的列表
     frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
     original_files = [f for f in os.listdir(original_path) if f.endswith('.png')]
@@ -47,16 +48,17 @@ def image_resize(frame_path,original_path,upscale_path):
     # 创建放大输出目录
     os.makedirs(upscale_path)
 
-    for frame_file, original_file in zip(frame_files,original_files):
-        frame = Image.open(os.path.join(frame_path,frame_file))
-        original = Image.open(os.path.join(original_path,original_file))
-        #width, height = original.size
+    for frame_file, original_file in zip(frame_files, original_files):
+        frame = Image.open(os.path.join(frame_path, frame_file))
+        original = Image.open(os.path.join(original_path, original_file))
+        # width, height = original.size
         new_frame = frame.resize(original.size)
-        new_frame.save(os.path.join(upscale_path,frame_file))
+        new_frame.save(os.path.join(upscale_path, frame_file))
         print(f"{frame_file}的尺寸已重构为{original.size}")
 
+
 # 定义生成透明图片函数
-def image_alpha(frame_path,alpha_path):
+def image_alpha(frame_path, alpha_path):
     print("开始进行透明背景操作：")
 
     # 透明目录存在就删除
@@ -72,17 +74,21 @@ def image_alpha(frame_path,alpha_path):
     if choice2 == '1':
         print("你选择了快速模式")
         print("开始生成透明背景图，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--device',device,'--source',frame_path,'--dest',alpha_path,'--type','rgba','--fast'])
+        subprocess.run(
+            ['transparent-background', '--device', device, '--source', frame_path, '--dest', alpha_path, '--type',
+             'rgba', '--fast'])
     else:
         print("你选择了标准模式")
         print("开始生成透明背景图，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--device',device,'--source',frame_path,'--dest',alpha_path,'--type','rgba'])
+        subprocess.run(
+            ['transparent-background', '--device', device, '--source', frame_path, '--dest', alpha_path, '--type',
+             'rgba'])
     # 开始修正图像名称
     files = sorted(os.listdir(alpha_path))
     # 遍历文件列表
     for filename in files:
         if filename.lower().endswith('.png'):
-            file_name,n1 = map(str, filename.split('_'))
+            file_name, n1 = map(str, filename.split('_'))
             new_file = f'{file_name}.png'
 
             # 构建文件完整路径
@@ -92,7 +98,7 @@ def image_alpha(frame_path,alpha_path):
             # 重命名文件
             os.rename(file_path, new_file_path)
     print(f"图生图的透明背景图已生成，在{frame_path}的{alpha_path}目录内。")
-    
+
 
 # 选择周边功能
 print("请选择使用的周边功能")
@@ -102,14 +108,14 @@ print("3. 我全都要！")
 choice = input("请输入周边功能编号：")
 
 if choice == '1':
-    image_resize(frame_path,original_path,upscale_path)
+    image_resize(frame_path, original_path, upscale_path)
 
 elif choice == '2':
-    image_alpha(frame_path,alpha_path)
+    image_alpha(frame_path, alpha_path)
 
 elif choice == '3':
-    image_resize(frame_path,original_path,upscale_path)
-    image_alpha(upscale_path,alpha_path)
+    image_resize(frame_path, original_path, upscale_path)
+    image_alpha(upscale_path, alpha_path)
 
 else:
     print("其他的功能还在一生悬命开发中，敬请期待，或找作者催更。")

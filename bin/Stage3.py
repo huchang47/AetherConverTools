@@ -46,7 +46,7 @@ with open(info_file_path, 'r') as info_file:
     lines = info_file.readlines()
 
 # 开始遍历融合
-for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(overlay_folder_path),lines):
+for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(work_path),lines):
     if frame.endswith('.png'):
         frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA") # 打开原图
         filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标

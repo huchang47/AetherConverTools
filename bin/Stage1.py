@@ -14,17 +14,19 @@ else:
     device = torch.device("cpu")
     print("加速失败！使用的设备：CPU")
 
+
 # 定义一个倍数函数
-def multiple(num,mul):
+def multiple(num, mul):
     return (num // mul + 1) * mul
+
 
 # 获取当前文件夹路径
 folder_path = os.path.dirname(os.getcwd())
-mask_path = os.path.join(folder_path, "video_mask")    #定义蒙版文件夹
-frame_path = os.path.join(folder_path, "video_frame")  #定义原始图像文件夹
+mask_path = os.path.join(folder_path, "video_mask")  # 定义蒙版文件夹
+frame_path = os.path.join(folder_path, "video_frame")  # 定义原始图像文件夹
 
 # 创建蒙版竖版文件夹
-mask_out_folder = mask_path+"_w"
+mask_out_folder = mask_path + "_w"
 mask_out_folder_path = os.path.join(folder_path, mask_out_folder)
 # 蒙版文件夹存在就删除
 if os.path.exists(mask_out_folder_path):
@@ -35,11 +37,12 @@ if not os.path.exists(mask_out_folder_path):
 
 # 创建记录原始坐标的TXT文件
 output_file = "原始坐标.txt"
-output_file_path = os.path.join(folder_path,"bin",output_file)
+output_file_path = os.path.join(folder_path, "bin", output_file)
 
 # 检查是否存在原始坐标文件，如果存在则删除
 if os.path.exists(output_file_path):
     os.remove(output_file_path)
+
 
 # 裁切蒙版函数
 def crop_mask_image(file_path, output_path):
@@ -63,27 +66,27 @@ def crop_mask_image(file_path, output_path):
         if left >= right or top >= bottom:
             print(f"错误：{file_path} 中未找到足够的白色像素区域。")
             return
-        
+
         # 裁切后长宽需要是8的倍数
-        frame_w,frame_h=image.size  #原图长和高
-        dw = right-left #差值 裁切后图的长
-        dh = bottom-top #差值 裁切后图的高
-        frame_w2 = multiple(dw,8)    #长重整为8的倍数
-        frame_h2 = multiple(dh,8)    #高重整为8的倍数
-        dw2 = frame_w2-dw   #新长和旧长的差值
-        dh2 = frame_h2-dh   #新高和旧高的差值
-        if left > dw2:  #如果左侧还有地方
-            left = left - dw2   #差值就加到左边
-        elif frame_w - right >dw2:  #如果右侧还有地方
-            right = right + dw2 #差值就加到右边
-        if top > dh2:   #如果上面还有地方
-            top = top - dh2 #差值就加到上面
-        elif frame_h - bottom > dh2:    #如果下面还有地方
-            bottom = bottom + dh2   #差值就加到下面
+        frame_w, frame_h = image.size  # 原图长和高
+        dw = right - left  # 差值 裁切后图的长
+        dh = bottom - top  # 差值 裁切后图的高
+        frame_w2 = multiple(dw, 8)  # 长重整为8的倍数
+        frame_h2 = multiple(dh, 8)  # 高重整为8的倍数
+        dw2 = frame_w2 - dw  # 新长和旧长的差值
+        dh2 = frame_h2 - dh  # 新高和旧高的差值
+        if left > dw2:  # 如果左侧还有地方
+            left = left - dw2  # 差值就加到左边
+        elif frame_w - right > dw2:  # 如果右侧还有地方
+            right = right + dw2  # 差值就加到右边
+        if top > dh2:  # 如果上面还有地方
+            top = top - dh2  # 差值就加到上面
+        elif frame_h - bottom > dh2:  # 如果下面还有地方
+            bottom = bottom + dh2  # 差值就加到下面
 
         # 转换为NumPy数组并裁切图像
         image_array = np.array(image)
-        cropped_image = Image.fromarray(image_array[top:bottom+1, left:right+1])
+        cropped_image = Image.fromarray(image_array[top:bottom + 1, left:right + 1])
 
         # 保存裁切后的图像
         cropped_image.save(output_path)
@@ -97,6 +100,7 @@ def crop_mask_image(file_path, output_path):
     except Exception as e:
         print(f"错误：处理 {file_path} 时出现异常。")
         print(str(e))
+
 
 # 遍历蒙版文件夹下的所有PNG图片
 png_files = [f for f in os.listdir(mask_path) if f.endswith('.png')]
@@ -116,11 +120,11 @@ for file_name in png_files:
     with Image.open(file_path) as img:
         width, height = img.size
         print('图片尺寸为：{}x{}'.format(width, height))
-    
+
 print(f"原始坐标已保存至 {output_file_path}")
 
 # 创建输出文件夹
-frame_out_folder = frame_path+"_w"
+frame_out_folder = frame_path + "_w"
 frame_out_folder_path = os.path.join(folder_path, frame_out_folder)
 # 输出文件夹存在就删除
 if os.path.exists(frame_out_folder_path):
@@ -143,7 +147,7 @@ for file, line in zip(frame_files, lines):
         filename, left, top, right, bottom = map(str, line.split(','))
         cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
         cropped_img.save(os.path.join(frame_out_folder_path, file))
-        print("帧"+file+"裁切完成！")
+        print("帧" + file + "裁切完成！")
 
 # 重新裁切与帧大小对应的蒙版
 for file, line in zip(os.listdir(mask_path), lines):
@@ -153,9 +157,9 @@ for file, line in zip(os.listdir(mask_path), lines):
         filename, left, top, right, bottom = map(str, line.split(','))
         cropped_img = img.crop((int(left), int(top), int(right), int(bottom)))
         cropped_img.save(os.path.join(mask_out_folder_path, file))
-        print("蒙版"+file+"裁切完成！")
+        print("蒙版" + file + "裁切完成！")
 
-Choice=input("\n\n\n是否开始反推提示词？\n1. 是\n2. 否\n请输入你选择的编号：")
+Choice = input("\n\n\n是否开始反推提示词？\n1. 是\n2. 否\n请输入你选择的编号：")
 if Choice == '1':
     subprocess.run(["python", "Stage1.5.py"])  # 执行Stage1.5.py文件
 

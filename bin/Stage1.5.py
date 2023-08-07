@@ -1,10 +1,8 @@
-import os
-import io
-import requests
 import base64
+import os
 from io import BytesIO
-from collections import OrderedDict
-from PIL import Image, PngImagePlugin
+import requests
+from PIL import Image
 
 # 定义本机的SD网址
 url = 'http://127.0.0.1:7860'
@@ -12,35 +10,38 @@ ex_url = url + "/tagger/v1/interrogate"
 headers = {
     'accept': 'application'
 }
-requests.post(f"{url}/tagger/v1/unload-interrogators",headers=headers)
+requests.post(f"{url}/tagger/v1/unload-interrogators", headers=headers)
 
 
 # 定义WD模型接口
-def ListWD():
+def listwd():
     wd_list = requests.get(f"{url}/tagger/v1/interrogators").json()
     return wd_list
 
+
 # 定义输入文件夹
 folder_path = os.path.dirname(os.getcwd())
-frame_path = os.path.join(folder_path, "video_frame_w")  #定义原始图像文件夹
+frame_path = os.path.join(folder_path, "video_frame_w")  # 定义原始图像文件夹
+
 
 # 定义获取WdTagger模型函数
 def get_WDmap():
-    WD_model={}
-    num=0
-    data=ListWD()['models']
+    WD_model = {}
+    num = 0
+    data = listwd()['models']
     for i in data:
-        WD_model[num]=i
-        print(str(num)+". ",i)
-        num+=1
-    Choice= int(input("请选择WD模型编号："))
-    print("选择的是",WD_model[Choice],"缺少的模型会自动下载")
+        WD_model[num] = i
+        print(str(num) + ". ", i)
+        num += 1
+    Choice = int(input("请选择WD模型编号："))
+    print("选择的是", WD_model[Choice], "缺少的模型会自动下载")
     return WD_model[Choice]
 
-    
+
 # 定义wd14的参数
 model = get_WDmap()
-threshold = 0.5    # 识别强度阈值，可自行调整
+threshold = 0.5  # 识别强度阈值，可自行调整
+
 
 # 定义图片转base64函数
 def img_str(image):
@@ -48,6 +49,7 @@ def img_str(image):
     image.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return img_str
+
 
 # 轮询目录开始输出
 frame_files = [f for f in os.listdir(frame_path) if f.endswith(".png")]
@@ -57,10 +59,10 @@ if len(frame_files) == 0:
     quit()
 
 for frame in frame_files:
-    response=''
-    caption_dict={}
-    sorted_items=[]
-    frame_file = os.path.join(frame_path,frame)
+    response = ''
+    caption_dict = {}
+    sorted_items = []
+    frame_file = os.path.join(frame_path, frame)
     img = img_str(Image.open(frame_file))
 
     with open(frame_file, 'rb') as file:
@@ -74,19 +76,20 @@ for frame in frame_files:
     }
 
     # 请求接口返回内容
-    
+
     response = requests.post(ex_url, json=data)
 
     # 检查响应状态码
     if response.status_code == 200:
         # 处理返回的JSON数据
-        
+
         caption_dict = response.json()['caption']
-        sorted_items = sorted([(k, v) for k, v in caption_dict.items() if float(v) > threshold], key=lambda x: x[1], reverse=True)
+        sorted_items = sorted([(k, v) for k, v in caption_dict.items() if float(v) > threshold], key=lambda x: x[1],
+                              reverse=True)
         txt = ','.join([f'{k}' for k, v in sorted_items])
 
         # 创建提示词txt文件
-        txt_file=os.path.join(frame_path,f'{os.path.splitext(frame_file)[0]}.txt')
+        txt_file = os.path.join(frame_path, f'{os.path.splitext(frame_file)[0]}.txt')
         with open(txt_file, 'w', encoding='utf-8') as tags:
             tags.write(txt)
         print(f'{frame}的提示词反推完成，提取{len(sorted_items)}个tag')

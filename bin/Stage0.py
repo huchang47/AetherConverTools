@@ -42,13 +42,13 @@ os.environ["PYTORCH_JIT"] = "1"
 torch.set_grad_enabled(False)
 
 # 使用 ffmpeg 命令行工具截取视频帧，并将其保存为图片
-subprocess.call([  
-    "ffmpeg", "-i", video_file, 
-    "-vf", "fps=" + str(fps), 
+subprocess.call([
+    "ffmpeg", "-i", video_file,
+    "-vf", "fps=" + str(fps),
     os.path.join(frame_out_dir, "%05d.png")
 ])
 
-print("\n\n视频转帧步骤已完成！码率为： "+str(fps))
+print("\n\n视频转帧步骤已完成！码率为： " + str(fps))
 
 # 生成蒙版
 print("\n\n是否同步生成蒙版？")
@@ -61,17 +61,18 @@ if choice == '1':
     print("\n选择蒙版生成算法")
     print("1. 快速，速度快但质量稍差")
     print("2. 标准，质量更好")
-    
+
     # 选择蒙版生成模式
     choice2 = input("请输入蒙版算法的编号：")
     if choice2 == '1':
         print("你选择了快速模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map','--fast'])
+        subprocess.run(
+            ['transparent-background', '--source', frame_out_dir, '--dest', mask_out_dir, '--type', 'map', '--fast'])
     else:
         print("你选择了标准模式")
         print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-        subprocess.run(['transparent-background','--source',frame_out_dir,'--dest',mask_out_dir,'--type','map'])
+        subprocess.run(['transparent-background', '--source', frame_out_dir, '--dest', mask_out_dir, '--type', 'map'])
 elif choice == '2':
     print("不生成。")
     print("已经结束咧！")
@@ -87,7 +88,7 @@ files = sorted(os.listdir(mask_out_dir))
 # 遍历文件列表
 for filename in files:
     if filename.lower().endswith('.png'):
-        file_name,n1 = map(str, filename.split('_'))
+        file_name, n1 = map(str, filename.split('_'))
         new_file = f'{file_name}.png'
 
         # 构建文件完整路径
@@ -98,8 +99,3 @@ for filename in files:
         os.rename(file_path, new_file_path)
 
 print("视频帧和对应的蒙版文件生成完成！")
-
-
-
-
-

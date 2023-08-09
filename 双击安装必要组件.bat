@@ -5,5 +5,6 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 pip3 install torchvision
 pip3 install shutil -i
 pip3 install transparent-background
+pip3 install transformers
 
 

@@ -124,5 +124,5 @@ if os.path.exists(mask_out_dir):
 os.makedirs(mask_out_dir)
 
 create_mask_clipseg(
-    frame_out_dir, mask_out_dir, "Girl with headphones,girl in green and blue shirt", "", 0.01, 0, 10
+    frame_out_dir, mask_out_dir, "Girls with headphones,girl wearing shorts", "man with umbrella", 0.01, 10, 10
 )

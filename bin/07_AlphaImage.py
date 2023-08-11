@@ -26,6 +26,7 @@ folder_path = os.path.dirname(os.getcwd())
 frame_path = os.path.join(folder_path, "video_remake")  # 重绘文件夹
 mask_path = os.path.join(frame_path, "mask")    # 蒙版目录
 alpha_path = os.path.join(frame_path, "alpha")  # 透明文件夹
+upscale_path = os.path.join(frame_path, "upscale")  # 放大文件夹
 
 # 透明目录存在就删除
 if os.path.exists(alpha_path):
@@ -71,7 +72,7 @@ def image_alpha(frame_path,alpha_path):
             os.rename(file_path, new_file_path)
     print(f"图生图的透明背景图已生成，在{frame_path}的{alpha_path}目录内。")
 
-image_alpha(frame_path,alpha_path)
+image_alpha(upscale_path,alpha_path)
 
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，将透明图像按照对应位置覆盖回原始图像？\n1. 是\n2. 否\n请输入你的选择：")

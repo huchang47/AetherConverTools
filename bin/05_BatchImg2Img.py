@@ -45,20 +45,20 @@ def Get_Vam(image,tar_size,types):
     img=Image.open(image)
     w,h=img.size
     ratio_o=w/h
-    if types == "1":
-        # 最大方案：将长边缩放到该尺寸
+    if types == 1:
+        # 长边方案：将长边缩放到该尺寸
         if ratio_o>=1: # 横屏
-            New_ratio=tar_size/w
+            Get_Vam=tar_size/w
         else:   #竖屏
-            New_ratio=tar_size/h
+            Get_Vam=tar_size/h
     else:
-        # 最小方案：将短边缩小到该尺寸，原本就小的不调整
+        # 短边方案：将短边缩小到该尺寸，原本就小的不调整
         min_size = min(w,h,tar_size)
         if min_size == tar_size:
-            New_ratio = tar_size/min(w,h)
+            Get_Vam = tar_size/min(w,h)
         else:
-            New_ratio = 1
-    return New_ratio
+            Get_Vam = 1
+    return Get_Vam
 
 # 图生图输出文件夹
 out_path = os.path.join(folder_path, "video_remake")
@@ -87,16 +87,17 @@ Choice=input("\n是否使用智能动态倍率（指定一个尺寸，智能调�
 if Choice == '1':
     vam_status = True
     try:
-        target = int(input("\n请根据自身需求和显卡实力输入目标分辨率（720或1080或更高，默认720）："))
-    except ValueError:
-        target = 720  # 默认值
-    try:
         types = int(input("\n请选择智能动态倍率的方案：\n1. 长边缩放方案（大图小图的长边都缩放到该尺寸）\n2. 短边缩小方案（大图的短边缩小，小图不调整）\n请输入你的选择："))
     except ValueError:
         types = 1  # 默认值
+    try:
+        target = int(input("\n请根据自身需求和显卡实力输入目标分辨率（720或1080或更高，默认720）："))
+    except ValueError:
+        target = 720  # 默认值
+
 else:
     vam_status = False
-if not vam_status:
+if vam_status == False:
     Mag = float(input("请输入图片固定缩放倍率，默认为1：") or 1)
     print("固定缩放倍率为：" + str(Mag))
 Set_Prompt = input("\n请输入正向提示词（可为空，由txt文件自动加载）：")
@@ -118,8 +119,9 @@ for frame, txt in zip(frame_files, txt_files):
     txt_file = os.path.join(frame_path,txt)
     with open(txt_file, 'r') as t:
         tag = t.read()
-    if vam_status:
+    if vam_status == True:
         Mag=Get_Vam(frame_file,target,types)
+        print(Mag)
 
 
     # 载入单张图片基本参数
@@ -188,17 +190,23 @@ for frame, txt in zip(frame_files, txt_files):
 
     r = response.json()
 
-    i = r['images'][0]
-    image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
 
-    png_payload = {
-        "image": "data:image/png;base64," + i
-    }
-    response2 = requests.post(url=f'{url}/sdapi/v1/png-info', json=png_payload)
-    pnginfo = PngImagePlugin.PngInfo()
-    pnginfo.add_text("Parameters: ", response2.json().get("info"))
-    image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
-    print(frame+"生成完毕！")
+    try:
+        i = r['images'][0]
+        image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+
+        png_payload = {
+            "image": "data:image/png;base64," + i
+        }
+        response2 = requests.post(url=f'{url}/sdapi/v1/png-info', json=png_payload)
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("Parameters: ", response2.json().get("info"))
+        image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
+        print(frame+"生成完毕！")
+    except Exception as e:
+        print(f"错误：处理图生图时出现异常，请查看SD控制台报错信息。")
+        print(str(e))
+        quit()     
 print("全部图片生成完毕！共计"+str(len(frame_files))+"张！")
 
 # 是否进行下一步

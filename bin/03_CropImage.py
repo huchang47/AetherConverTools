@@ -159,7 +159,6 @@ for file, line in zip(os.listdir(mask_path), lines):
         cropped_img.save(os.path.join(mask_out_folder_path, file))
         print("蒙版" + file + "裁切完成！")
 
-Choice = input("\n\n\n是否开始反推提示词？\n1. 是\n2. 否\n请输入你选择的编号：")
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，反推提示词？需要启用API后启动SD，并正确安装WD1.4 Tagger插件\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":

@@ -42,3 +42,10 @@ subprocess.call([
 ])
 
 print("\n\n视频转帧步骤已完成！码率为： " + str(fps))
+
+# 是否进行下一步
+choice = input("\n是否直接开始下一步，将视频帧输出为蒙版？\n1. 是\n2. 否\n请输入你的选择：")
+if choice == "1":
+    subprocess.run(['python', '02_MaskCreation.py'])
+else:
+    quit()

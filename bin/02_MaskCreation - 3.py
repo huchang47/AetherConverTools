@@ -1,7 +1,7 @@
-import subprocess
 import os
-import torch
 import shutil
+
+import torch
 from ultralytics import YOLO
 
 print("检测是否有可用的CUDA设备中……")

@@ -1,7 +1,7 @@
 import os
-import shutil
 import requests
 import io
+import glob
 import base64
 import subprocess
 from io import BytesIO
@@ -62,12 +62,17 @@ def Get_Vam(image,tar_size,types):
 
 # 图生图输出文件夹
 out_path = os.path.join(folder_path, "video_remake")
-# 蒙版文件夹存在就删除
-if os.path.exists(out_path):
-    shutil.rmtree(out_path)
 # 不存在就创建
 if not os.path.exists(out_path):
     os.makedirs(out_path)
+
+# 判断是否已经有文件了
+png_files = glob.glob(os.path.join(out_path, '*.png'))
+if len(png_files)>0:
+    choice = input(f"{out_path}文件夹内已有文件，再次生成会覆盖此前的图像，你确定这样做吗？\n1. 是的，我明白\n2. 别，我的图还要\n请谨慎输入你的选择：1")
+    if choice != '1':
+        quit()
+
 
 # 轮询输入目录
 frame_files = [f for f in os.listdir(frame_path) if f.endswith('.png')]
@@ -121,8 +126,6 @@ for frame, txt in zip(frame_files, txt_files):
         tag = t.read()
     if vam_status == True:
         Mag=Get_Vam(frame_file,target,types)
-        print(Mag)
-
 
     # 载入单张图片基本参数
     im = Image.open(frame_file)

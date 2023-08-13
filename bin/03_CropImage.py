@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import shutil
 import subprocess
+import glob
 from torchvision import transforms
 from PIL import Image
 
@@ -28,12 +29,17 @@ frame_path = os.path.join(folder_path, "video_frame")  # 定义原始图像文�
 # 创建蒙版竖版文件夹
 mask_out_folder = mask_path + "_w"
 mask_out_folder_path = os.path.join(folder_path, mask_out_folder)
-# 蒙版文件夹存在就删除
-if os.path.exists(mask_out_folder_path):
-    shutil.rmtree(mask_out_folder_path)
+
 # 不存在就创建
 if not os.path.exists(mask_out_folder_path):
     os.makedirs(mask_out_folder_path)
+
+# 判断是否已经有蒙版了
+mask_files = glob.glob(os.path.join(mask_out_folder_path, '*.png'))
+if len(mask_files)>0:
+    choice = input(f"{mask_out_folder_path}文件夹内已有蒙版文件，再次生成会覆盖此前的蒙版，你确定这样做吗？\n1. 是的，我明白\n2. 别，我的蒙版还要\n请谨慎输入你的选择：")
+    if choice != '1':
+        quit()
 
 # 创建记录原始坐标的TXT文件
 output_file = "原始坐标.txt"

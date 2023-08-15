@@ -7,5 +7,6 @@ pip3 install shutil -i
 pip3 install transparent-background
 pip3 install transformers
 pip3 install glob
+pip3 install numpy
 
 

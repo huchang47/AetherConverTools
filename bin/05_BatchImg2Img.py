@@ -9,6 +9,8 @@ from PIL import Image, PngImagePlugin
 
 # 定义本机的SD网址
 url = "http://127.0.0.1:7860"
+txt2img_url = f"{url}/sdapi/v1/txt2img"
+img2img_url = f"{url}/sdapi/v1/img2img"
 
 # 定义CN模型数据接口
 def ListCN():
@@ -32,6 +34,7 @@ def get_CNmap():
 folder_path = os.path.dirname(os.getcwd())
 mask_path = os.path.join(folder_path, "video_mask_w")    #定义蒙版文件夹
 frame_path = os.path.join(folder_path, "video_frame_w")  #定义原始图像文件夹
+image_template = os.path.join(folder_path, "00001.png")     # 定义第一个用于模版的图
 
 # 定义图片转base64函数
 def img_str(image):
@@ -69,7 +72,7 @@ if not os.path.exists(out_path):
 # 判断是否已经有文件了
 png_files = glob.glob(os.path.join(out_path, '*.png'))
 if len(png_files)>0:
-    choice = input(f"{out_path}文件夹内已有文件，再次生成会覆盖此前的图像，你确定这样做吗？\n1. 是的，我明白\n2. 别，我的图还要\n请谨慎输入你的选择：1")
+    choice = input(f"{out_path}文件夹内已有文件，再次生成会覆盖此前的图像，你确定这样做吗？\n1. 是的，我明白\n2. 别，我的图还要\n请谨慎输入你的选择：")
     if choice != '1':
         quit()
 
@@ -86,8 +89,21 @@ if len(txt_files) == 0:
     quit()
 
 # 输入必要的参数
-denoising_strength = input("请输入重绘幅度，0 - 1之间：") or 1
-print("重绘幅度为：" + denoising_strength)
+Choice=input("\n请选择进行文生图还是图生图？\n1. 文生图\n2. 图生图\n请输入你的选择：")
+if Choice == '1':
+    work_type='txt'
+    work_url=txt2img_url
+    denoising_strength = 0
+elif Choice == '2':
+    work_type='img'
+    work_url=img2img_url
+    denoising_strength = input("请输入重绘幅度，0 - 1之间：") or 1
+    print("重绘幅度为：" + denoising_strength)
+else:
+    print("明智的选择，养护显卡很重要")
+    quit()
+
+# 智能倍率
 Choice=input("\n是否使用智能动态倍率（指定一个尺寸，智能调整每张图输出时向该尺寸趋近）？\n1. 是\n2. 否\n请输入你的选择：")
 if Choice == '1':
     vam_status = True
@@ -105,6 +121,7 @@ else:
 if vam_status == False:
     Mag = float(input("请输入图片固定缩放倍率，默认为1：") or 1)
     print("固定缩放倍率为：" + str(Mag))
+
 Set_Prompt = input("\n请输入正向提示词（可为空，由txt文件自动加载）：")
 Neg_Prompt = input("请输入反向提示词（可为空）：")
 print("\n是否启用ADetailer进行脸部修复（请确保你正确安装了该插件，否则可能出错）？\n1. 是\n2. 否")
@@ -119,23 +136,36 @@ else:
 control_dict= get_CNmap()
 # print(control_dict)
 
+# 内门心法
+Choice=input("\n是否使用以太内门心法？(测试中功能)\n1. 是\n2. 否\n请输入你的选择：")
+if Choice == '1':
+    tmp_type = True
+else:
+    tmp_type = False
+
+# 载入样板图像
+if tmp_type == True:
+    encoded_image_template = img_str(Image.open(image_template))
+
+# 轮询开始出图
 for frame, txt in zip(frame_files, txt_files):
     frame_file = os.path.join(frame_path,frame)
     txt_file = os.path.join(frame_path,txt)
+    im = Image.open(frame_file)
+    encoded_image = img_str(im)
     with open(txt_file, 'r') as t:
         tag = t.read()
+    
     if vam_status == True:
         Mag=Get_Vam(frame_file,target,types)
 
     # 载入单张图片基本参数
-    im = Image.open(frame_file)
-    encoded_image = img_str(im)
     frame_w,frame_h = im.size
 
     # 定义一个ContrlNet参数表
     control_nets = [
-        ("lineart_realistic", 0.3,0), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
-        ("tile_colorfix", 0.6,8),
+        ("lineart_realistic", 0.6,0,encoded_image), # 默认为不调用任何CN，避免没有模型报错。有能力的自己改：CN名称和权重，多个CN就同样加一行。
+        ("tile_colorfix", 0.6,8,encoded_image),
     ]
     # 定义ADetailer的参数
     Ade_args = [
@@ -152,7 +182,7 @@ for frame, txt in zip(frame_files, txt_files):
     else:
         cn_args = [
             {
-                "input_image": encoded_image,
+                "input_image": cn[3],
                 "module": cn[0], 
                 "model": control_dict[cn[0]],
                 "weight": cn[1], 
@@ -165,6 +195,17 @@ for frame, txt in zip(frame_files, txt_files):
                 "guidance_end": 1.0,    # 引导终止时机
             } for cn in control_nets
         ]
+        if tmp_type == True:
+            tmp_args = [    # 内门心法参数
+                {
+                "input_image": encoded_image_template,
+                "module": "none",   # 别动
+                "model": "temporalnet", # 别动
+                "weight": 0.6,  # 权重
+                "pixel_perfect": True,  # 完美像素模式
+                }
+            ]
+            cn_args.extend(tmp_args)
     
     payload = {
         "init_images": [encoded_image],
@@ -189,7 +230,7 @@ for frame, txt in zip(frame_files, txt_files):
     }
     print(frame+"开始生成！生成尺寸为"+str(int(frame_w*Mag))+"x"+str(int(frame_h*Mag))+"像素")
 
-    response = requests.post(url=f'{url}/sdapi/v1/img2img', json=payload)
+    response = requests.post(url=work_url, json=payload)
 
     r = response.json()
 
@@ -205,6 +246,7 @@ for frame, txt in zip(frame_files, txt_files):
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("Parameters: ", response2.json().get("info"))
         image.save(os.path.join(out_path,frame), pnginfo=pnginfo)
+        encoded_image_template = img_str(image)
         print(frame+"生成完毕！")
     except Exception as e:
         print(f"错误：处理图生图时出现异常，请查看SD控制台报错信息。")
@@ -215,6 +257,6 @@ print("全部图片生成完毕！共计"+str(len(frame_files))+"张！")
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，将图生图后的图像与裁切图片进行尺寸对齐？\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":
-    subprocess.run(['python', '07_AlphaImage.py'])
+    subprocess.run(['python', '06_ResizeImage.py'])
 else:
     quit()

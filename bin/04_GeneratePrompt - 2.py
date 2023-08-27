@@ -37,14 +37,6 @@ def smart_resize(img, size):
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_CUBIC)
     return img
 
-# 检查是否有可用的CUDA设备
-if torch.cuda.is_available():
-    tf_device_name = '/gpu:0'
-    print("加速成功！使用的设备：CUDA")
-else:
-    tf_device_name = '/cpu:0'
-    print("加速失败！使用的设备：CPU")
-
 # select a device to process
 use_cpu = False
 
@@ -173,7 +165,7 @@ class WaifuDiffusionInterrogator(Interrogator):
         if tf_device_name == '/cpu:0':
             providers.pop(0)
 
-        self.model = InferenceSession(str(model_path), providers=providers)
+        self.model = InferenceSession(str(model_path), providers=providers.pop(1))
 
         print(f'Loaded {self.name} model from {model_path}')
 

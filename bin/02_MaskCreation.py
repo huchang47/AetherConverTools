@@ -67,12 +67,12 @@ choice2 = input("请输入蒙版算法的编号：")
 if choice2 == '1':
     print("你选择了快速模式")
     print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-    subprocess.run(
+    subprocess.call(
         ['transparent-background', '--source', frame_out_dir, '--dest', mask_out_dir, '--type', 'map', '--fast'])
 else:
     print("你选择了标准模式")
     print("开始生成蒙版，请注意查看进度。根据图片数量，时间可能很长。\n你可以随时按Ctrl+C停止生成。")
-    subprocess.run(['transparent-background', '--source', frame_out_dir, '--dest', mask_out_dir, '--type', 'map'])
+    subprocess.call(['transparent-background', '--source', frame_out_dir, '--dest', mask_out_dir, '--type', 'map'])
 
 # 开始修正蒙版名称
 files = sorted(os.listdir(mask_out_dir))

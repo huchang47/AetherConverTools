@@ -1,5 +1,6 @@
 import os
 import subprocess
+import glob
 from PIL import Image
 
 # 获取当前文件夹路径
@@ -47,15 +48,19 @@ if not os.path.exists(output_folder_path):
 with open(info_file_path, 'r') as info_file:
     lines = info_file.readlines()
 
+# 遍历图像文件
+frame_dir = glob.glob(os.path.join(frame_path, '*.png'))
+frame_w_dir = glob.glob(os.path.join(work_path, '*.png'))
+
 # 开始遍历融合
-for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(work_path),lines):
-    if frame.endswith('.png'):
-        frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA") # 打开原图
-        filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标
-        overlay = Image.open(os.path.join(work_path, frame_w)).convert("RGBA")  # 打开新图
-        frame.paste(overlay, (int(left), int(top)), mask=overlay)   # 贴进去
-        frame.save(os.path.join(output_folder_path, frame_w))   # 保存
-        print(frame_w+"融合完成！")
+for frame,frame_w, line in zip(frame_dir, frame_w_dir,lines):
+    frame_name = os.path.basename(frame_w)
+    frame = Image.open(frame).convert("RGBA") # 打开原图
+    filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标
+    overlay = Image.open(frame_w).convert("RGBA")  # 打开新图
+    frame.paste(overlay, (int(left), int(top)), mask=overlay)   # 贴进去
+    frame.save(os.path.join(output_folder_path, frame_name))   # 保存
+    print(frame_name+"融合完成！")
 
 print("所有新图已融入原图！")
 

@@ -1,4 +1,3 @@
-=======
 # AetherConverTools - 以太转换工具
 - 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)
 - 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。

@@ -353,6 +353,6 @@ for image, mask in zip(images, masks):
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，反推提示词？\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":
-    subprocess.run(['python', '04_GeneratePrompt - 2.py'])
+    subprocess.run(['python', '04_GeneratePrompt.py'])
 else:
     quit()

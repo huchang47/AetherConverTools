@@ -1,11 +1,13 @@
 import os
-import subprocess
+import torch
 import pandas as pd
 import numpy as np
+
 from typing import Tuple, List, Dict
 from io import BytesIO
 import cv2
 from PIL import Image
+
 from pathlib import Path
 from huggingface_hub import hf_hub_download
 
@@ -28,14 +30,14 @@ def make_square(img, target_size):
 
 
 def smart_resize(img, size):
-    # 假设图像已经经过 make_square 处理
+    # Assumes the image has already gone through make_square
     if img.shape[0] > size:
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_AREA)
     elif img.shape[0] < size:
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_CUBIC)
     return img
 
-# 调用gpu，很难成功，环境要求太高
+# select a device to process
 use_cpu = False
 
 if use_cpu:
@@ -47,7 +49,8 @@ class Interrogator:
     @staticmethod
     def postprocess_tags(
         tags: Dict[str, float],
-        threshold=0.35, # 阈值强度，默认0.35
+
+        threshold=0.25,
         additional_tags: List[str] = [],
         exclude_tags: List[str] = [],
         sort_by_alphabetical_order=False,
@@ -59,15 +62,18 @@ class Interrogator:
         for t in additional_tags:
             tags[t] = 1.0
 
+        # those lines are totally not "pythonic" but looks better to me
         tags = {
             t: c
-            # 按标签名称或置信度排序
+
+            # sort by tag name or confident
             for t, c in sorted(
                 tags.items(),
                 key=lambda i: i[0 if sort_by_alphabetical_order else 1],
                 reverse=not sort_by_alphabetical_order
             )
-            # 筛选大于阈值的标签
+
+            # filter tags
             if (
                 c >= threshold
                 and t not in exclude_tags
@@ -116,10 +122,11 @@ class Interrogator:
         self,
         image: Image
     ) -> Tuple[
-        Dict[str, float],
-        Dict[str, float]
+        Dict[str, float],  # rating confidents
+        Dict[str, float]  # tag confidents
     ]:
         raise NotImplementedError()
+
 
 class WaifuDiffusionInterrogator(Interrogator):
     def __init__(
@@ -145,19 +152,22 @@ class WaifuDiffusionInterrogator(Interrogator):
 
     def load(self) -> None:
         model_path, tags_path = self.download()
+
+        # only one of these packages should be installed at a time in any one environment
+        # https://onnxruntime.ai/docs/get-started/with-python.html#install-onnx-runtime
+        # TODO: remove old package when the environment changes?
+
         from onnxruntime import InferenceSession
+
+        # https://onnxruntime.ai/docs/execution-providers/
+        # https://github.com/toriato/stable-diffusion-webui-wd14-tagger/commit/e4ec460122cf674bbf984df30cdb10b4370c1224#r92654958
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
-        if not model_path.exists():
-            raise FileNotFoundError(f'{model_path}不存在')
-        if not tags_path.exists():
-            raise FileNotFoundError(f'{tags_path}不存在')
-        self.model_path = model_path
-        self.tags_path = tags_path
-      
+        if tf_device_name == '/cpu:0':
+            providers.pop(0)
 
-        self.model = InferenceSession(str(model_path), providers=providers)
+        self.model = InferenceSession(str(model_path), providers=providers.pop(1))
 
-        print(f'从{model_path}下载或读取{self.name}模型')
+        print(f'Loaded {self.name} model from {model_path}')
 
         self.tags = pd.read_csv(tags_path)
 
@@ -171,16 +181,22 @@ class WaifuDiffusionInterrogator(Interrogator):
         # init model
         if not hasattr(self, 'model') or self.model is None:
             self.load()
+
+        # code for converting the image and running the model is taken from the link below
+        # thanks, SmilingWolf!
+        # https://huggingface.co/spaces/SmilingWolf/wd-v1-4-tags/blob/main/app.py
+
+        # convert an image to fit the model
         _, height, _, _ = self.model.get_inputs()[0].shape
 
-        # 透明转换成白色
+        # alpha to white
         image = image.convert('RGBA')
         new_image = Image.new('RGBA', image.size, 'WHITE')
         new_image.paste(image, mask=image)
         image = new_image.convert('RGB')
         image = np.asarray(image)
 
-        # RGB格式转换
+        # PIL RGB to OpenCV BGR
         image = image[:, :, ::-1]
         image = make_square(image, height)
 
@@ -188,7 +204,7 @@ class WaifuDiffusionInterrogator(Interrogator):
         image = image.astype(np.float32)
         image = np.expand_dims(image, 0)
 
-        # 验证一下模型
+        # evaluate model
         input_name = self.model.get_inputs()[0].name
         label_name = self.model.get_outputs()[0].name
         confidents = self.model.run([label_name], {input_name: image})[0]
@@ -196,13 +212,14 @@ class WaifuDiffusionInterrogator(Interrogator):
         tags = self.tags[:][['name']]
         tags['confidents'] = confidents[0]
 
-        # 前4项标签用于评定模型（一般、敏感、可疑、明确）
+        # first 4 items are for rating (general, sensitive, questionable, explicit)
         ratings = dict(tags[:4].values)
 
-        # 其他的是常规标签
+        # rest are regular tags
         tags = dict(tags[4:].values)
 
         return ratings, tags
+
 
 my_wf =  WaifuDiffusionInterrogator(
             'wd14-convnextv2-v2',
@@ -233,7 +250,7 @@ for frame in frame_files:
     with open(txt_file, 'w', encoding='utf-8') as tags:
         tags.write(txt)
     print(f'{frame}的提示词反推完成，提取{tag_count}个tag')
-
+    
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，进行批量图生图？需要启用API后启动SD，详细配置请打开[05_BatchImg2Img]文件手动调整\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":

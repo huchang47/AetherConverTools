@@ -250,3 +250,10 @@ for frame in frame_files:
     with open(txt_file, 'w', encoding='utf-8') as tags:
         tags.write(txt)
     print(f'{frame}的提示词反推完成，提取{tag_count}个tag')
+    
+# 是否进行下一步
+choice = input("\n是否直接开始下一步，进行批量图生图？需要启用API后启动SD，详细配置请打开[05_BatchImg2Img]文件手动调整\n1. 是\n2. 否\n请输入你的选择：")
+if choice == "1":
+    subprocess.run(['python', '05_BatchImg2Img.py'])
+else:
+    quit()

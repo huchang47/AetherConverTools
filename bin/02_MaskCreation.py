@@ -77,28 +77,30 @@ else:
 # 开始修正蒙版名称
 files = sorted(os.listdir(mask_out_dir))
 
-# 遍历文件列表
-for filename in files:
-    if filename.lower().endswith('.png'):
-        file_name, n1 = map(str, filename.split('_'))
-        new_file = f'{file_name}.png'
-
-        # 构建文件完整路径
-        file_path = os.path.join(mask_out_dir, filename)
-        new_file_path = os.path.join(mask_out_dir, new_file)
-
-        # 重命名文件
-        os.rename(file_path, new_file_path)
-        im = cv2.imread(new_file_path)
-        gray_image = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        # 二值化
-        _, im_g = cv2.threshold(gray_image, 177, 255, cv2.THRESH_BINARY)
-        # 将二值化后的图像转换为numpy数组
-        im_np = np.array(im_g)
-        # 调用max_area函数，获取最大面积的图像
-        im = max_area(im_np)
-        # 将最大面积的图像写入新的文件
-        cv2.imwrite(new_file_path, im)
+# 遍历文件列表  
+for filename in files:  
+    if filename.lower().endswith('.png'):  
+        file_name, n1 = map(str, filename.split('_'))  
+        new_file = f'{file_name}.png'  
+  
+        # 构建文件完整路径  
+        file_path = os.path.join(mask_out_dir, filename)  
+        new_file_path = os.path.join(mask_out_dir, new_file)  
+  
+        # 重命名文件  
+        os.rename(file_path, new_file_path)  
+        im = cv2.imread(new_file_path)  
+        gray_image = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)  
+        # 二值化  
+        _, im_g = cv2.threshold(gray_image, 177, 255, cv2.THRESH_BINARY)  
+        # 将二值化后的图像转换为numpy数组  
+        im_np = np.array(im_g)  
+        # 调用max_area函数，获取最大面积的图像  
+        im = np.zeros_like(im_np)  # 创建与输入图像大小相同的黑色图像  
+        max_area_mask = max_area(im_np)  # 获取仅包含最大轮廓的掩膜图像  
+        im[max_area_mask == 255] = 255  # 将输出图像中对应的像素设为白色  
+        # 将最大面积的图像写入新的文件  
+        cv2.imwrite(new_file_path, im)  
 
 
 print("蒙版文件生成完成！")

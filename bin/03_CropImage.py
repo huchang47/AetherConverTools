@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import shutil
 import subprocess
+import glob
 from torchvision import transforms
 from PIL import Image
 
@@ -28,12 +29,17 @@ frame_path = os.path.join(folder_path, "video_frame")  # 定义原始图像文�
 # 创建蒙版竖版文件夹
 mask_out_folder = mask_path + "_w"
 mask_out_folder_path = os.path.join(folder_path, mask_out_folder)
-# 蒙版文件夹存在就删除
-if os.path.exists(mask_out_folder_path):
-    shutil.rmtree(mask_out_folder_path)
+
 # 不存在就创建
 if not os.path.exists(mask_out_folder_path):
     os.makedirs(mask_out_folder_path)
+
+# 判断是否已经有蒙版了
+mask_files = glob.glob(os.path.join(mask_out_folder_path, '*.png'))
+if len(mask_files)>0:
+    choice = input(f"{mask_out_folder_path}文件夹内已有蒙版文件，再次生成会覆盖此前的蒙版，你确定这样做吗？\n1. 是的，我明白\n2. 别，我的蒙版还要\n请谨慎输入你的选择：")
+    if choice != '1':
+        quit()
 
 # 创建记录原始坐标的TXT文件
 output_file = "原始坐标.txt"
@@ -321,9 +327,32 @@ for file, line in zip(os.listdir(mask_path), lines):
         cropped_img.save(os.path.join(mask_out_folder_path, file))
         print("蒙版" + file + "裁切完成！")
 
+# 获取图像和蒙版文件列表并进行排序  
+images = sorted([f for f in os.listdir(frame_out_folder) if f.lower().endswith(".png")])
+masks = sorted([f for f in os.listdir(mask_out_folder) if f.lower().endswith(".png")])
+
+# 重新将图生成白色背景图片
+for image, mask in zip(images, masks):  
+    if image.endswith(".png") and mask.endswith(".png"):  
+        image_file = os.path.join(frame_path, image)  
+        mask_file = os.path.join(mask_path, mask)  
+        image_out_file = os.path.join(frame_out_folder, image)  
+  
+        # 打开图像和蒙版文件  
+        with Image.open(image_file) as image2, Image.open(mask_file).convert("L") as mask:  
+            # 创建白色背景图像  
+            white_background = Image.new("RGBA", image2.size, (255, 255, 255, 255))  
+            # 反向蒙版  
+            inverted_mask = Image.eval(mask, lambda px: 255 - px)  
+            # 将反向蒙版作为蒙版应用到图像上  
+            image2.paste(white_background, (0, 0), inverted_mask) 
+            # 保存图片  
+            image2.save(image_out_file, "PNG")  
+        print(image_out_file + "的白色背景版本已生成") 
+
 # 是否进行下一步
 choice = input("\n是否直接开始下一步，反推提示词？\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":
-    subprocess.run(['python', '04_GeneratePrompt.py'])
+    subprocess.run(['python', '04_GeneratePrompt - 2.py'])
 else:
     quit()

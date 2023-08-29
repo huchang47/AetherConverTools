@@ -8,7 +8,7 @@ from io import BytesIO
 from PIL import Image, PngImagePlugin
 
 # 定义本机的SD网址
-url = "http://127.0.0.1:7860"
+url = input("请填入你的SD地址（默认http://127.0.0.1:7860）：") or 'http://127.0.0.1:7860"'
 txt2img_url = f"{url}/sdapi/v1/txt2img"
 img2img_url = f"{url}/sdapi/v1/img2img"
 

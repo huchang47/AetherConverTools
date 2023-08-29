@@ -129,6 +129,168 @@ for file_name in png_files:
 
 print(f"原始坐标已保存至 {output_file_path}")
 
+# 生成坐标文件
+width = int(width)
+height = int(height)
+
+# 步骤一：创建备用1.txt文件，进行第一轮转换
+if os.path.exists("备用1.txt"):
+    os.remove("备用1.txt")
+with open("备用1.txt", "w") as f:
+    pass
+
+# 步骤二：计算坐标差值和平均值，并将结果写入备用1.txt
+with open(output_file_path, "r") as f:
+    lines = f.readlines()
+
+count = 0
+for line in lines:
+    print("正在处理行:", line.strip())  # 输出行内容
+    filename,x1,y1,x2,y2 = map(str,line.split(','))
+    x1, y1, x2, y2 = int(x1),int(y1),int(x2),int(y2)
+
+    diff_x = x2 - x1
+    diff_y = y2 - y1
+    avg_x = (x1 + x2) // 2
+    avg_y = (y1 + y2) // 2
+
+    with open("备用1.txt", "a") as f:
+        new_line = f"{filename},{diff_x},{diff_y},{avg_x},{avg_y}\n"
+        f.write(new_line)
+
+    count += 1
+
+# 步骤三：新建备用2.txt文件
+
+if os.path.exists("备用2.txt"):
+    os.remove("备用2.txt")
+
+with open("备用2.txt", "w") as f:
+    pass
+
+# 步骤四：借助备用1.txt的信息生成备用2.txt
+
+max_x_diff = 0
+max_y_diff = 0
+
+with open("备用1.txt", "r") as f:
+    lines = f.readlines()
+
+for line in lines:
+
+    filename,x1,y1,x2,y2 = map(str,line.split(','))
+
+    x_diff = int(x1)
+    y_diff = int(y1)
+
+    if x_diff > max_x_diff:
+        max_x_diff = x_diff
+
+    if y_diff > max_y_diff:
+        max_y_diff = y_diff
+
+piancha_x = 0
+piancha_y = 0
+
+if max_x_diff > width:
+	max_x_diff = width
+	piancha_x = 1
+	print("尺寸过小，为了程序运行，已修正X数值")
+	print("最大X坐标差值:", max_x_diff)
+if max_y_diff > height:
+	max_y_diff = height
+	piancha_y = 1
+	print("尺寸过小，为了程序运行，已修正Y数值")
+	print("最大Y坐标差值:", max_y_diff)
+
+with open("备用2.txt", "w") as f:
+    for line in lines:
+        filename,x1,y1,x2,y2 = map(str,line.split(','))
+        x1, y1, x2, y2 = int(x1),int(y1),int(x2),int(y2)
+
+        new_x1 = x2 - round(max_x_diff / 2, 1)
+        new_y1 = y2 - round(max_y_diff / 2, 1)
+        new_x2 = x2 + round(max_x_diff / 2, 1)
+        new_y2 = y2 + round(max_y_diff / 2, 1)
+        new_line = f"{filename},{new_x1:.1f},{new_y1:.1f},{new_x2:.1f},{new_y2:.1f}\n"
+        f.write(new_line)
+
+# 步骤五：新建坐标.txt文件
+
+if os.path.exists("改造坐标.txt"):
+    os.remove("改造坐标.txt")
+
+with open("改造坐标.txt", "w") as f:
+    pass
+
+# 步骤六：借助备用2.txt的信息生成改造坐标.txt
+with open("备用2.txt", "r") as f:
+    lines = f.readlines()
+
+for line in lines:
+    filename,x1,y1,x2,y2 = map(str,line.split(','))
+    x1, y1, x2, y2 = float(x1),float(y1),float(x2),float(y2)
+
+    if piancha_x == 0:
+        if x1 < 0:
+            p = 0 - x1
+            x1 = x1 + p
+            x2 = x2 + p
+
+        if x2 > float(width):
+            p = x2 - float(width)
+            x2 = x2 - p
+            x1 = x1 - p
+
+    if piancha_y == 0:
+        if y1 < 0:
+            q = 0 - y1
+            y1 = y1 + q
+            y2 = y2 + q
+
+        if y2 > float(height):
+            q = y2 - float(height)
+            y2 = y2 - q
+            y1 = y1 - q
+
+    with open("改造坐标.txt", "a") as f:
+        filename = os.path.splitext(filename)[0]
+        new_line = f"{filename},{int(x1)},{int(y1)},{int(x2)},{int(y2)}\n"
+        f.write(new_line)
+
+os.remove("备用1.txt")
+os.remove("备用2.txt")
+#os.remove(output_file_path)
+
+print("\n\n\n请选择图像裁切方式：")
+print("1. 原始坐标（按照蒙版原始大小裁切，每张图尺寸不同）")
+print("2. 最大坐标（按照最大蒙版大小裁切，每张图相同尺寸）")
+
+choice = input("请输入裁切方式的编号：")
+
+if choice == '1':
+    print("你选择了原始坐标裁切")
+    map_file = "原始坐标.txt"
+elif choice == '2':
+    print("你选择了最大坐标裁切")
+    map_file = "改造坐标.txt"
+else:
+    print("无效的选择，默认采用原始坐标方式裁切")
+    map_file = "原始坐标.txt"
+
+# 把选择结果存起来，第三步方便调用
+with open(map_file, "a") as f:
+    f.write("Choose me")
+
+# 坐标文件路径
+folder_path = os.path.dirname(os.getcwd())
+info_file_path = os.path.join(folder_path,"bin",map_file)
+
+# 检查坐标文件是否存在
+if not os.path.isfile(info_file_path):
+    print("坐标文件不存在！")
+    exit()
+
 # 创建输出文件夹
 frame_out_folder = frame_path + "_w"
 frame_out_folder_path = os.path.join(folder_path, frame_out_folder)
@@ -140,7 +302,7 @@ if not os.path.exists(frame_out_folder_path):
     os.makedirs(frame_out_folder_path)
 
 # 读取坐标文件
-with open(output_file_path, 'r') as info_file:
+with open(info_file_path, 'r') as info_file:
     lines = info_file.read().splitlines()
 
 # 开始裁切视频帧
@@ -189,7 +351,7 @@ for image, mask in zip(images, masks):
         print(image_out_file + "的白色背景版本已生成") 
 
 # 是否进行下一步
-choice = input("\n是否直接开始下一步，反推提示词？需要启用API后启动SD，并正确安装WD1.4 Tagger插件\n1. 是\n2. 否\n请输入你的选择：")
+choice = input("\n是否直接开始下一步，反推提示词？\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":
     subprocess.run(['python', '04_GeneratePrompt - 2.py'])
 else:

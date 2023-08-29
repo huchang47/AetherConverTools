@@ -1,3 +1,9 @@
+=======
+# AetherConverTools - 以太转换工具
+- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)
+- 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
+- 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)使用，可获得更好的效果。
+
 ## 环境安装：
 1. 安装``Python环境``，版本大于3.10.8。[官方下载页面](https://www.python.org/downloads/)
 2. 运行``双击安装必要组件.bat``，安装Python下会用到的组件
@@ -25,3 +31,8 @@
     - 工作流默认的SD地址是127.0.0.1:7860，如果你做过调整，请前往bin文件夹下修改``05_BatchImg2Img.py``文件中的``url``参数为对应的地址
 5. 图生图没有图片输出：
     - 查看SD的控制台窗口，会有对应的报错信息，大部分时候是SD的问题，比如爆显存之类的，请自行排查。
+
+## Todo：
+1. 界面
+2. Ebs的全面整合
+3. 保存配置

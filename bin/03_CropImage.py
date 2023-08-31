@@ -189,7 +189,7 @@ for image, mask in zip(images, masks):
         print(image_out_file + "的白色背景版本已生成") 
 
 # 是否进行下一步
-choice = input("\n是否直接开始下一步，反推提示词？需要启用API后启动SD，并正确安装WD1.4 Tagger插件\n1. 是\n2. 否\n请输入你的选择：")
+choice = input("\n是否直接开始下一步，反推提示词？\n1. 是\n2. 否\n请输入你的选择：")
 if choice == "1":
     subprocess.run(['python', '04_GeneratePrompt - 2.py'])
 else:

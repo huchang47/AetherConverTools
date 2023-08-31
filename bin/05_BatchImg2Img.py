@@ -8,7 +8,11 @@ from io import BytesIO
 from PIL import Image, PngImagePlugin
 
 # 定义本机的SD网址
+<<<<<<< HEAD
 url = input("请填入你的SD地址（默认http://127.0.0.1:7860）：") or 'http://127.0.0.1:7860'
+=======
+url = input("请填入你的SD地址（默认http://127.0.0.1:7860）：") or 'http://127.0.0.1:7860"'
+>>>>>>> ad2e6919ba879390be4202a1dd08bf84bef69f5d
 txt2img_url = f"{url}/sdapi/v1/txt2img"
 img2img_url = f"{url}/sdapi/v1/img2img"
 
@@ -168,13 +172,16 @@ for frame, txt in zip(frame_files, txt_files):
         ("tile_colorfix", 0.6,8,encoded_image),
     ]
     # 定义ADetailer的参数
-    Ade_args = [
-        {
-            "ad_model": Ade_Mod,    # Ade模型
-            "ad_confidence": 0.5,   # 检测幅度
-            "ad_prompt": "",    # Ade提示词
-        }
-    ]
+    if ADe_type == '1':
+        Ade_args = [
+            {
+                "ad_model": Ade_Mod,    # Ade模型
+                "ad_confidence": 0.5,   # 检测幅度
+                "ad_prompt": "",    # Ade提示词
+            }
+        ]
+    else:
+        Ade_args = []
 
     # 轮询输出ControlNet的参数
     if control_nets[0][0]== 'None':

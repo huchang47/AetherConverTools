@@ -302,7 +302,7 @@ if not os.path.exists(frame_out_folder_path):
     os.makedirs(frame_out_folder_path)
 
 # 读取坐标文件
-with open(output_file_path, 'r') as info_file:
+with open(info_file_path, 'r') as info_file:
     lines = info_file.read().splitlines()
 
 # 开始裁切视频帧

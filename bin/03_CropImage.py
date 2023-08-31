@@ -302,7 +302,7 @@ if not os.path.exists(frame_out_folder_path):
     os.makedirs(frame_out_folder_path)
 
 # 读取坐标文件
-with open(info_file_path, 'r') as info_file:
+with open(output_file_path, 'r') as info_file:
     lines = info_file.read().splitlines()
 
 # 开始裁切视频帧
@@ -334,8 +334,8 @@ masks = sorted([f for f in os.listdir(mask_out_folder) if f.lower().endswith(".p
 # 重新将图生成白色背景图片
 for image, mask in zip(images, masks):  
     if image.endswith(".png") and mask.endswith(".png"):  
-        image_file = os.path.join(frame_path, image)  
-        mask_file = os.path.join(mask_path, mask)  
+        image_file = os.path.join(frame_out_folder_path, image)  
+        mask_file = os.path.join(mask_out_folder_path, mask)  
         image_out_file = os.path.join(frame_out_folder, image)  
   
         # 打开图像和蒙版文件  

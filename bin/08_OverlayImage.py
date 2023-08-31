@@ -10,23 +10,7 @@ remake_path = os.path.join(folder_path, "video_remake")  #定义原始图像文�
 alpha_path = os.path.join(folder_path,"video_remake","alpha")   # 定义透明图像文件夹
 
 # 坐标文件路径
-info_file_path1 = os.path.join(folder_path,"bin","原始坐标.txt")
-info_file_path2 = os.path.join(folder_path,"bin","改造坐标.txt")
-
-# 检查坐标文件是否存在
-if not os.path.isfile(info_file_path1) and not os.path.isfile(info_file_path2):
-    print("覆盖信息文件均不存在！请检查后重试！")
-    quit()
-
-# 确定裁切方式
-with open('原始坐标.txt', 'r') as f:
-    lines = f.readlines()
-    last_line = lines[-1].strip()
-    if last_line.startswith('Choose me'):
-        map_file="原始坐标.txt"
-    else:
-        map_file="改造坐标.txt"
-info_file_path=os.path.join(folder_path,"bin",map_file)
+info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
 
 # 选择用什么图融合
 # print("请选择使用怎样的图进行融合：\n1. 图生图标准图像\n2. 透明背景图像")
@@ -45,6 +29,11 @@ except Exception as e:
     quit()
 if len(png_files) == 0:
     print("你选择的图像目录中没有任何PNG图片，请检查后重试")
+    quit()
+
+# 检查坐标文件是否存在
+if not os.path.isfile(info_file_path):
+    print("覆盖信息文件均不存在！请检查后重试！")
     quit()
 
 # 竖版图生图文件夹路径

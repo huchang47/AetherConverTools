@@ -18,3 +18,4 @@ pip3 install transformers
 pip3 install numpy
 pip3 install pandas
 pip3 install onnxruntime
+pip3 install opencv-python

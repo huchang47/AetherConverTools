@@ -1,25 +1,37 @@
 # AetherConverTools - 以太转换工具
-- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)
+- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)
 - 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
-- 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)和[Segment-Anything](https://github.com/continue-revolution/sd-webui-segment-anything)使用，可获得更好的效果。
+- 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)使用，可获得更好的效果。
 
-# 安装
-下载项目后，需要`python>=3.8`环境，以及其他一些必要的组件，待后续完善补充。
-理论上你可以正常使用`Stable Diffusion`，就没有什么问题。
-部分缺少的组件会自动安装。
+## 环境安装：
+1. 安装``Python环境``，版本大于3.10.8。[官方下载页面](https://www.python.org/downloads/)
+2. 运行``双击安装必要组件.bat``，安装Python下会用到的组件
+3. 安装``FFMpeg``，注意需要将路径添加为系统变量，[官方下载页面](https://github.com/BtbN/FFmpeg-Builds/releases)
+
+## 素材准备：
+0. 将视频文件命名为``video.mp4``，放在工作流根目录，运行``Stage0_视频转帧(可选).bat``生成帧文件和蒙版文件
 
 ## 执行步骤：
-1. 运行``Stage1_横裁竖.bat``文件，等待运行结束（有CUDA会得到加速）,可选择同步反推提示词文件
-2. 裁切完成的帧文件在``video_frame_w``，蒙版文件在``video_mask_w``，文件夹会自动生成
-3. 运行``Stage2_图生图.bat``，调用Webui的api，将``video_frame_w``中的文件进行图生图，放置在``video_remake``文件夹
-4. 运行``StageETC.bat``，对图生图结果文件进行后续操作，包括：
-	4.1  将图生图图像与裁切文件进行尺寸对齐，放入upscale文件夹
-	4.2  生成透明背景图像，放入alpha文件夹
-5. 运行``Stage3_竖进横.bat``文件，``video_remake``文件夹内的图像，融合回``video_frame``的图像中，生成的文件在``video_frame_Done``中
-6. 运行``Stage4_生成视频.bat``文件，将``video_frame_Done``文件夹内的成品图片合成为视频，最终成品为``video_Done.mp4``
+1. 运行``01_从头开始工作流.bat``文件，跟随引导完成工作流
+2. 可运行``02_中途开始工作流.bat``文件，随时运行任意工作流步骤
 
-## 可选步骤：
-1. 素材准备可通过``Stage0_视频转帧(可选).bat``直接生成，无需借助其他工具
+## 常见问题解决：
+1. 明明是N卡且安装了CUDA，却依然只能调用CPU进行运算：
+    - 安装的CUDA不适用于Python的pip环境，运行``双击安装必要组件.bat``，会卸载此前的Torch，安装适用的，此间需下载2个2.6G的文件。
+2. Subprocess的相关报错：
+    - 如果你的Python是3.11.x版本，很可能是Python版本的问题，请尝试安装与作者相同的3.10.8版本。
+    - 也可能是没有正确安装FFmpeg导致，重新安装FFmpeg即可。
+3. 生成蒙版和透明时如果报错：
+    - 请在``C:\Users\你的用户名\.transparent-background``查看是否有2个350m大小的模型文件，理论上他们会自动下载，但会因为网络问题下载不成功。
+    - 百度网盘地址：``https://pan.baidu.com/s/1jbzPtVz9F4ZpbI-XbIC1OQ?pwd=atct``，手动下载后放到对应目录内。
+4. 图生图时服务器“积极的拒绝”：
+    - 没有启用主角Stable-Diffusion
+    - 没有启用API调用，秋叶整合包前端有选项勾选即可，其他环境在启动命令行中添加``--api``参数后启动
+    - 工作流默认的SD地址是127.0.0.1:7860，如果你做过调整，请前往bin文件夹下修改``05_BatchImg2Img.py``文件中的``url``参数为对应的地址
+5. 图生图没有图片输出：
+    - 查看SD的控制台窗口，会有对应的报错信息，大部分时候是SD的问题，比如爆显存之类的，请自行排查。
 
-## 后续工作：
-1. 用你习惯的方式，将``video_Done.mp4``视频做进一步编辑。
+## Todo：
+1. 界面
+2. Ebs的全面整合
+3. 保存配置

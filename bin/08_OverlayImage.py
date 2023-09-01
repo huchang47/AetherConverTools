@@ -1,4 +1,6 @@
 import os
+import subprocess
+import glob
 from PIL import Image
 
 # 获取当前文件夹路径
@@ -11,12 +13,13 @@ alpha_path = os.path.join(folder_path,"video_remake","alpha")   # 定义透明�
 info_file_path = os.path.join(folder_path,"bin","原始坐标.txt")
 
 # 选择用什么图融合
-print("请选择使用怎样的图进行融合：\n1. 图生图标准图像\n2. 透明背景图像（需先执行Etc中的透明操作）")
-Choice=input("你选择使用怎样的图像呢：")
-if Choice == '1':
-    work_path = remake_path
-else:
-    work_path = alpha_path
+# print("请选择使用怎样的图进行融合：\n1. 图生图标准图像\n2. 透明背景图像")
+# Choice=input("你选择使用怎样的图像呢：")
+# if Choice == '1':
+#     work_path = remake_path
+# else:
+#     
+work_path = alpha_path
 
 # 判断图是否存在
 try:
@@ -45,14 +48,25 @@ if not os.path.exists(output_folder_path):
 with open(info_file_path, 'r') as info_file:
     lines = info_file.readlines()
 
-# 开始遍历融合
-for frame,frame_w, line in zip(os.listdir(frame_path), os.listdir(overlay_folder_path),lines):
-    if frame.endswith('.png'):
-        frame = Image.open(os.path.join(frame_path, frame)).convert("RGBA") # 打开原图
-        filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标
-        overlay = Image.open(os.path.join(work_path, frame_w)).convert("RGBA")  # 打开新图
-        frame.paste(overlay, (int(left), int(top)), mask=overlay)   # 贴进去
-        frame.save(os.path.join(output_folder_path, frame_w))   # 保存
-        print(frame_w+"融合完成！")
+# 遍历图像文件
+frame_dir = glob.glob(os.path.join(frame_path, '*.png'))
+frame_w_dir = glob.glob(os.path.join(work_path, '*.png'))
 
-print("所有新图已融入原图，第三步完成！")
+# 开始遍历融合
+for frame,frame_w, line in zip(frame_dir, frame_w_dir,lines):
+    frame_name = os.path.basename(frame_w)
+    frame = Image.open(frame).convert("RGBA") # 打开原图
+    filename, left, top, right, bottom = map(str, line.split(','))  # 读取坐标
+    overlay = Image.open(frame_w).convert("RGBA")  # 打开新图
+    frame.paste(overlay, (int(left), int(top)), mask=overlay)   # 贴进去
+    frame.save(os.path.join(output_folder_path, frame_name))   # 保存
+    print(frame_name+"融合完成！")
+
+print("所有新图已融入原图！")
+
+# 是否进行下一步
+choice = input("\n是否直接开始下一步，将融合完成的图片生成视频？\n1. 是\n2. 否\n请输入你的选择：")
+if choice == "1":
+    subprocess.run(['python', '09_Img2Video.py'])
+else:
+    quit()

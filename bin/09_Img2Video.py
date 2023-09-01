@@ -15,7 +15,7 @@ if not os.path.exists(frame_tmp_path):
 
 # 定义文件路径
 video_filename = os.path.join(folder_path, "video.mp4") # 原始视频文件
-music_filename = os.path.join(folder_path, "video.mp3") # 提取视频音乐文件
+music_filename = os.path.join(folder_path, "video.m4a") # 提取视频音乐文件
 video_tmp_filename = os.path.join(folder_path, "video_tmp.mp4") # 无音乐的新视频文件
 video_out_filename = os.path.join(folder_path, "video_Done.mp4")    # 最终成品
 
@@ -28,7 +28,7 @@ def even_size(img_size):
 # 定义提取音频函数
 def extract_music_from_video(video_file, music_file):
     # 调用FFmpeg从视频中提取音频
-    subprocess.call(['ffmpeg', '-y', '-i', video_file, '-q:a', '0', '-map', 'a', music_file])
+    subprocess.call(['ffmpeg', '-y', '-i', video_file, '-q:a', '0', '-map', 'a', '-c:a', 'aac', music_file])
 
 # 定义合成视频函数
 def convert_images_to_video(image_folder, output_video, music_file):
@@ -62,7 +62,7 @@ def convert_images_to_video(image_folder, output_video, music_file):
             "-r", str(fps),"-s",f"{image_width}x{image_height}", video_tmp_filename
         ])
         # 调用FFmpeg将音乐合成进视频
-        subprocess.call(['ffmpeg', '-i', video_tmp_filename, '-i', music_file, '-c:v', 'copy', '-c:a', 'mp3', '-map', '0:v:0', '-map', '1:a:0', '-shortest', '-y', output_video])
+        subprocess.call(['ffmpeg', '-i', video_tmp_filename, '-i', music_file, '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-y', output_video])
 
 # 输出原视频音频文件
 extract_music_from_video(video_filename,music_filename)

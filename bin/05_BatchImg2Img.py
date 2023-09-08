@@ -207,6 +207,19 @@ for frame, txt in zip(frame_files, txt_files):
             ]
             cn_args.extend(tmp_args)
     
+    # 提取脚本的定义项目
+    alwayson_scripts_args = {
+        "controlnet":{
+            "args": cn_args,
+        },
+    }
+    if ADe_type == '1':
+        alwayson_scripts_args.update({
+            "Adetailer":{
+                "args":Ade_args
+            },
+        })
+    
     payload = {
         "init_images": [encoded_image],
         "prompt": tag + "," + Set_Prompt,  # 正向提示词，固定提示词+通过txt文件载入
@@ -219,14 +232,7 @@ for frame, txt in zip(frame_files, txt_files):
         "steps": 30,    # 迭代步数
         "cfg_scale": 7, # 提示词引导系数（CFG）
         "seed": -1, # 种子，默认随机
-        "alwayson_scripts": {
-            "controlnet": {
-                "args": cn_args
-            },
-            "ADetailer": {
-                "args": Ade_args
-            }
-        }
+        "alwayson_scripts": alwayson_scripts_args
     }
     print(frame+"开始生成！生成尺寸为"+str(int(frame_w*Mag))+"x"+str(int(frame_h*Mag))+"像素")
 

@@ -1,3 +1,7 @@
+# AetherConverTools - 以太转换工具
+- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)
+- 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
+- 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)使用，可获得更好的效果。
 ## 环境安装：
 1. 安装``Python环境``，版本大于3.10.8，注意需要勾选Add Path，若没有勾选，请手动添加Python目录到系统环境变量。[官方下载页面](https://www.python.org/downloads/)
 2. 运行``双击安装必要组件.bat``，安装Python下会用到的组件

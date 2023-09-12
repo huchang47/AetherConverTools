@@ -3,6 +3,11 @@ import os
 import torch
 import shutil
 
+print('\n========== 以太转绘工作流脚本 ==========\n')
+print('工作流即将开始，请确保当前目录下有视频文件，且文件名格式为：video.mp4')
+print('如果在运行中程序出现错误，极大可能是缺少组件和自动下载模型不成功')
+print('请安装组件和科学上网后再次尝试。还有问题，请加群792358210敲打作者\n')
+
 # 定义需要处理的视频文件路径
 folder_path = os.path.dirname(os.getcwd())
 video_file = os.path.join(folder_path, "video.mp4")

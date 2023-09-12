@@ -1,10 +1,11 @@
 ## 环境安装：
-1. 安装``Python环境``，版本大于3.10.8。[官方下载页面](https://www.python.org/downloads/)
+1. 安装``Python环境``，版本大于3.10.8，注意需要勾选Add Path，若没有勾选，请手动添加Python目录到系统环境变量。[官方下载页面](https://www.python.org/downloads/)
 2. 运行``双击安装必要组件.bat``，安装Python下会用到的组件
-3. 安装``FFMpeg``，注意需要将路径添加为系统变量，[官方下载页面](https://github.com/BtbN/FFmpeg-Builds/releases)
+3. 安装``FFMpeg``，注意需要将路径添加为系统环境变量，[官方下载页面](https://github.com/BtbN/FFmpeg-Builds/releases)
+4. 部分步骤在首次运行时需要下载特定的AI模型，有可能需要科学上网，下载成功后，不再需要科学上网（除非模型更新）
 
 ## 素材准备：
-0. 将视频文件命名为``video.mp4``，放在工作流根目录，运行``Stage0_视频转帧(可选).bat``生成帧文件和蒙版文件
+0. 将视频文件命名为``video.mp4``，放在工作流根目录
 
 ## 执行步骤：
 1. 运行``01_从头开始工作流.bat``文件，跟随引导完成工作流
@@ -12,10 +13,10 @@
 
 ## 常见问题解决：
 1. 明明是N卡且安装了CUDA，却依然只能调用CPU进行运算：
-    - 安装的CUDA不适用于Python的pip环境，运行``双击安装必要组件.bat``，会卸载此前的Torch，安装适用的，此间需下载2个2.6G的文件。
+    - 安装的CUDA不适用于Python的pip环境，运行``双击安装必要组件.bat``，安装适用的，此间需下载2个2.6G的文件。
+    - 如若仍未解决，先删除已有的touch，再次运行。
 2. Subprocess的相关报错：
-    - 如果你的Python是3.11.x版本，很可能是Python版本的问题，请尝试安装与作者相同的3.10.8版本。
-    - 也可能是没有正确安装FFmpeg导致，重新安装FFmpeg即可。
+    - 没有正确安装FFmpeg导致，请正确安装，并加入系统环境变量。
 3. 生成蒙版和透明时如果报错：
     - 请在``C:\Users\你的用户名\.transparent-background``查看是否有2个350m大小的模型文件，理论上他们会自动下载，但会因为网络问题下载不成功。
     - 百度网盘地址：``https://pan.baidu.com/s/1jbzPtVz9F4ZpbI-XbIC1OQ?pwd=atct``，手动下载后放到对应目录内。

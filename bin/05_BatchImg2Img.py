@@ -136,16 +136,16 @@ else:
 control_dict= get_CNmap()
 # print(control_dict)
 
-# 内门心法
-Choice=input("\n是否使用以太内门心法？(测试中功能)\n1. 是\n2. 否\n请输入你的选择：")
-if Choice == '1':
-    tmp_type = True
-else:
-    tmp_type = False
+# # 内门心法
+# Choice=input("\n是否使用以太内门心法？(测试中功能)\n1. 是\n2. 否\n请输入你的选择：")
+# if Choice == '1':
+#     tmp_type = True
+# else:
+#     tmp_type = False
 
-# 载入样板图像
-if tmp_type == True:
-    encoded_image_template = img_str(Image.open(image_template))
+# # 载入样板图像
+# if tmp_type == True:
+#     encoded_image_template = img_str(Image.open(image_template))
 
 # 轮询开始出图
 for frame, txt in zip(frame_files, txt_files):
@@ -195,17 +195,17 @@ for frame, txt in zip(frame_files, txt_files):
                 "guidance_end": 1.0,    # 引导终止时机
             } for cn in control_nets
         ]
-        if tmp_type == True:
-            tmp_args = [    # 内门心法参数
-                {
-                "input_image": encoded_image_template,
-                "module": "none",   # 别动
-                "model": "temporalnet", # 别动
-                "weight": 0.6,  # 权重
-                "pixel_perfect": True,  # 完美像素模式
-                }
-            ]
-            cn_args.extend(tmp_args)
+        # if tmp_type == True:
+        #     tmp_args = [    # 内门心法参数
+        #         {
+        #         "input_image": encoded_image_template,
+        #         "module": "none",   # 别动
+        #         "model": "temporalnet", # 别动
+        #         "weight": 0.6,  # 权重
+        #         "pixel_perfect": True,  # 完美像素模式
+        #         }
+        #     ]
+        #     cn_args.extend(tmp_args)
     
     # 提取脚本的定义项目
     alwayson_scripts_args = {

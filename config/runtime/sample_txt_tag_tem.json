@@ -1,0 +1,23 @@
+{
+  "workspace": "D:/sample_txt_tag_tem",
+  "video": {
+    "input": "video.mp4",
+    "output": "output.mp4",
+    "fps": 15,
+    "audio": true
+  },
+  "setting": {
+    "resize": {
+      "scale": 1.0
+    }
+  },
+  "config": {
+    "setting": "txt_tag.json",
+    "webui": "lineart_temporanet_tile.json"
+  },
+  "webui": {
+    "prompt": "",
+    "negative_prompt": "",
+    "denoising_strength": 0.6
+  }
+}

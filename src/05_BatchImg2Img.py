@@ -34,6 +34,7 @@ def transform(webui_config: WebuiConfig, setting_config: SettingConfig, workspac
     single_w = cur_w
     single_h = cur_h
 
+    # 多帧渲染
     ct_ref_img_str = img_encode(ref_transformed_scale[0]) if len(ref_transformed_scale) > 0 else None
 
     # input img encode
@@ -125,7 +126,6 @@ def transform(webui_config: WebuiConfig, setting_config: SettingConfig, workspac
         else:
             cur_img_tra = cur_img_tra_scale.copy()
 
-
         # 更新参考图
         if len(ref_transformed) == 0:
             ref_transformed.append(cur_img_tra.copy())
@@ -208,6 +208,21 @@ if __name__ == '__main__':
 
     # workspace path config
     workspace = setting_config.get_workspace_config()
+
+    # get control net list
+    webui_host = setting_config.get_webui_host()
+    control_types = WebuiConfig.get_control_types(webui_host)
+    control_types = opt_dict(control_types, 'control_types')
+    control_types = opt_dict(control_types, 'All')
+    control_models = opt_dict(control_types, 'model_list')
+    if control_models is None or len(control_models) == 0:
+        print("Warning: 未找到 controlnet 模型")
+        control_models = []
+
+    # check control models
+    if not WebuiConfig.match_controlnet_models(webui_json, control_models):
+        print("Error: controlnet models not match")
+        exit(ERROR_CONTROLNET_MODEL)
 
     input_frame_names = get_input_frames(setting_config, workspace)
     if len(input_frame_names) == 0:

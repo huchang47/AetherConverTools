@@ -1,5 +1,5 @@
 {
-  "workspace": "D:/sample_img_tag_tem",
+  "workspace": "D:/sample_txt_tag_tem",
   "video": {
     "input": "video.mp4",
     "output": "output.mp4",
@@ -12,8 +12,8 @@
     }
   },
   "config": {
-    "setting": "img_tag.json",
-    "webui": "lineart_temporanet_tile.json"
+    "setting": "txt_tag.txt",
+    "webui": "lineart_temporanet_tile.txt"
   },
   "webui": {
     "prompt": "",

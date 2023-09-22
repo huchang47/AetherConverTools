@@ -74,7 +74,7 @@
     - "": 不处理tag
     - action: 单帧只保留动作表情
     - action_common: 提取公共tag, 单帧只保留动作表情
-  - actions: 动作表情tag列表
+  - actions: 动作表情tag列表，在此列表的 tag 会被当做 动作表情 处理
 
 - crop:
   - 0: 不裁剪

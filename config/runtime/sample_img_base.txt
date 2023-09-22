@@ -12,8 +12,8 @@
     }
   },
   "config": {
-    "setting": "img_base.json",
-    "webui": "lineart_tile.json"
+    "setting": "img_base.txt",
+    "webui": "lineart_tile.txt"
   },
   "webui": {
     "prompt": "",

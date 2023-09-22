@@ -14,6 +14,7 @@ ERROR_INPUT_EMPTY = 4
 ERROR_WEBUI_CALL = 5
 ERROR_NO_VIDEO = 6
 ERROR_UNKNOWN_MASK_MODE = 7
+ERROR_CONTROLNET_MODEL = 8
 
 def is_empty(obj):
     if obj is None:
@@ -169,7 +170,7 @@ class SettingConfig:
 
     def get_webui_api(self):
         if self.webui_work_api is None:
-            webui_api = opt_dict(self.config, "webui_api_url", "http://127.0.0.1:7860/")
+            webui_host = self.get_webui_host()
             draw_type = self.get_draw_type()
             if draw_type == DRAW_TYPE_IMG2IMG:
                 path = "sdapi/v1/img2img"
@@ -178,8 +179,11 @@ class SettingConfig:
             else:
                 print("Error: webui api type error")
                 return None
-            self.webui_work_api = webui_api + path
+            self.webui_work_api = webui_host + path
         return self.webui_work_api
+
+    def get_webui_host(self):
+        return opt_dict(self.config, "webui_api_url", "http://127.0.0.1:7860/")
 
     def get_current_seed(self):
         seed = opt_dict(self.config, "seed", -1)
@@ -270,9 +274,6 @@ class SettingConfig:
         tag_cfg = opt_dict(self.config, "tag")
         return opt_dict(tag_cfg, "enable", False)
 
-    def enable_multi_frame(self):
-        return opt_dict(self.config, "multi_frame", False)
-
     def enable_overlay(self):
         return opt_dict(self.config, "overlay", False)
 
@@ -284,6 +285,34 @@ class WebuiConfig:
 
     def get_config(self):
         return self.config
+
+    @staticmethod
+    def match_controlnet_models(config: dict, models: []):
+        alwayson_scripts = opt_dict(config, "alwayson_scripts")
+        controlnet = opt_dict(alwayson_scripts, "controlnet")
+        controlnet_args = opt_dict(controlnet, "args")
+        if not is_empty(controlnet_args):
+            for item in controlnet_args:
+                model_name = opt_dict(item, "model", "")
+                if is_empty(model_name):
+                    continue
+                if model_name in models:
+                    continue
+                # find again
+                model_name = model_name.split(" ")[0]
+                if "_fp16" in model_name:
+                    model_name = model_name.replace("_fp16", "")
+                matched = False
+                for model in models:
+                    if model_name in model:
+                        item["model"] = model
+                        matched = True
+                        print("警告: 找不到 controlnet 模型 %s, 将使用 %s 代替" % (model_name, model))
+                        break
+                if not matched:
+                    print("错误: 找不到 controlnet 模型 %s" % model_name)
+                    return False
+        return True
 
     def inflate_control_nets(self, cur_img_ori, last_img_tra=None, cur_mask_ori=None, last_mask_tra=None):
         alwayson_scripts = opt_dict(self.config, "alwayson_scripts")
@@ -338,3 +367,8 @@ class WebuiConfig:
     def call(self, url: str):
         response = requests.post(url=url, json=self.get_config())
         return response
+
+    @staticmethod
+    def get_control_types(host):
+        cn_url = host + "controlnet/control_types"
+        return requests.get(url=cn_url).json()

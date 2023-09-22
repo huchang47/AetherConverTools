@@ -10,18 +10,33 @@
 
 ## 素材准备：
 1. 将视频文件命名为`video.mp4`，放在任意目录下，复制此目录的路径
-2. 修改 `config/runtime/sample01.json` 文件中的`workspace`参数为刚才复制的目录路径
+2. 修改一个配置，比如 `config/runtime/sample_img_base.txt` 文件中的`workspace`参数为刚才复制的目录路径
 
 ## 执行步骤：
 - 运行`启动_自动模式.bat` 或 `启动_交互模式.bat`文件;
 - 选择开始的步骤，比如 1;
-- 输入 `config/runtime` 下的任意配置文件路径（可直接拖拽配置文件到命令行）。比如 `D:/AetherConverTools/config/runtime/sample_img_base.json`;
+- 输入 `config/runtime` 下的任意配置文件路径（可直接拖拽配置文件到命令行）。比如 `D:/AetherConverTools/config/runtime/sample_img_base.txt`;
+
+## 样例配置
+
+- runtime
+  - sample_img_base.txt: 图生图 基础配置
+    - controlnet: lineart:0.6 + tile:0.6
+    - 缩放: 1.0
+    - 重绘强度: 0.6
+    - 裁剪: 最小化
+    - inpaint: 关
+  - sample_img_tag_tem.txt: 图生图 基础 + tem loopback
+    - controlnet: lineart:0.6 + tile:0.6 + tem:0.6
+  - sample_txt_base.txt: 文生图 基础配置
+  - sample_txt_tag_tem.txt: 文生图 基础 + tem loopback
+
 
 ## runtime 配置
 
 运行依赖的相关配置
 
-提示：如果不会修改，请使用默认配置
+提示：如果不会修改，请使用样例里的配置
 
 - workspace: 工作目录，存放输入输出和临时文件
 
@@ -46,7 +61,7 @@
 
 工作流相关配置
 
-提示：如果不会修改，请使用默认配置
+提示：如果不会修改，请使用样例里的配置
 
 - type:
   - img2img: 图生图
@@ -90,7 +105,8 @@
 
 ## webui 配置
 
-webui 相关配置，有能力的自行修改
+webui 相关配置，有能力的自行修改。
+可增加或删除 controlnet 模型
 
 
 

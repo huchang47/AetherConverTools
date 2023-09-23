@@ -116,15 +116,20 @@ if __name__ == '__main__':
     mask_mode = setting_config.get_mask_mode()
     if mask_mode == MASK_MODE_TRANSPARENT_BACKGROUND:
         transparent_bg(workspace)
+        print("蒙版文件生成完成！")
     elif mask_mode == MASK_MODE_TRANSPARENT_BACKGROUND_FAST:
         transparent_bg(workspace, '--fast')
+        print("蒙版文件生成完成！")
     elif mask_mode[0] == '#': # pure mode
         pure_bg2(workspace, mask_mode)
+        print("蒙版文件生成完成！")
+    elif mask_mode == MASK_MODE_NONE:
+        print("跳过蒙版生成")
+        # 强制设置裁剪为false
+        setting_config.set_crop_mode(0)
     else:
         print("Error: unknown mask mode")
         exit(ERROR_UNKNOWN_MASK_MODE)
-
-    print("蒙版文件生成完成！")
 
     if it_mode is None:
         it_mode = setting_config.get_interactive_mode()

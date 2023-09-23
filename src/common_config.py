@@ -130,6 +130,7 @@ class Workspace:
         self.crop_info = crop_info
 
 
+MASK_MODE_NONE = ""
 MASK_MODE_TRANSPARENT_BACKGROUND = "transparent-background"
 MASK_MODE_TRANSPARENT_BACKGROUND_FAST = "transparent-background-fast"
 MASK_MODE_SAM = "sam"
@@ -266,6 +267,9 @@ class SettingConfig:
 
     def get_crop_mode(self):
         return opt_dict(self.config, "crop", CROP_MODE_NONE)
+
+    def set_crop_mode(self, crop):
+        self.config["crop"] = crop
 
     def enable_inpaint(self):
         return opt_dict(self.config, "inpaint", False)

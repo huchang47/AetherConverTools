@@ -10,9 +10,9 @@
 
 ## 素材准备：
 1. 将视频文件命名为`video.mp4`，放在任意目录下，复制此目录的路径
-2. 修改一个配置，比如 `config/runtime/sample_img_base.txt` 文件中的`workspace`参数为刚才复制的目录路径
 
 ## 执行步骤：
+- 首次使用的用户先运行 `配置_创建.bat` 生成一份配置，非首次使用可运行 `配置_修改.bat` 修改已存在的配置，生成的配置都放在 `config/runtime` 目录下；
 - 运行`启动_自动模式.bat` 或 `启动_交互模式.bat`文件;
 - 选择开始的步骤，比如 1;
 - 输入 `config/runtime` 下的任意配置文件路径（可直接拖拽配置文件到命令行）。比如 `D:/AetherConverTools/config/runtime/sample_img_base.txt`;
@@ -73,6 +73,7 @@
   - xxxxx: 自定义种子
 
 - mask_mode: 蒙版抠图算法
+  - "": 不抠图
   - transparent-background-fast: 速度快，效果一般
   - transparent-background: 速度慢，效果较好
   - #RRGGBBAA: 只适用于纯色背景(颜色值按需修改)抠图，速度快，效果好

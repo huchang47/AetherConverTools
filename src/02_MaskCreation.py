@@ -14,27 +14,29 @@ def transparent_bg(workspace: Workspace, param = None):
     args = ['transparent-background', '--source', workspace.input, '--dest', workspace.input_mask, '--type', 'map']
     if not is_empty(param):
         args.append(param)
-    subprocess.call(args)
+    subprocess.check_call(args)
 
     # 开始修正蒙版名称
     files = sorted(os.listdir(workspace.input_mask))
     # 遍历文件列表
     for filename in files:
         if filename.lower().endswith('.png'):
-            file_name, n1 = map(str, filename.split('_'))
-            new_name = f'{file_name}.png'
-
-            # 构建文件完整路径
             file_path = os.path.join(workspace.input_mask, filename)
-            new_file_path = os.path.join(workspace.input_mask, new_name)
-
-            # 重命名文件
-            os.rename(file_path, new_file_path)
+            if '_' in filename:
+                name_arr = filename.split('_')
+                new_name = f'{name_arr[0]}.png'
+                new_file_path = os.path.join(workspace.input_mask, new_name)
+                # 重命名文件
+                os.rename(file_path, new_file_path)
+            else:
+                new_name = filename
+                new_file_path = os.path.join(workspace.input_mask, new_name)
 
             # create mask
             img = cv2.imread(new_file_path)
             img = img_to_mask(img)
             cv2.imwrite(new_file_path, img)
+
 
 # hsv 抠图
 def pure_bg2(workspace: Workspace, color):

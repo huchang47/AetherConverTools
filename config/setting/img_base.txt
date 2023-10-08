@@ -1,0 +1,31 @@
+{
+  "interactive_mode": "auto",
+  "webui_api_url": "",
+  "type": "img2img",
+  "seed": -1,
+  "resize": {
+    "scale": 1.0
+  },
+  "crop": 1,
+  "inpaint": false,
+  "mask_mode": "transparent-background-fast",
+  "mask_bg_mode": "#ffffff",
+  "tag": {
+    "enable": true,
+    "mode": ""
+  },
+  "overlay": true,
+  "workspace": {
+    "input": "input",
+    "output": "output",
+    "tmp": {
+      "parent": "tmp",
+      "input_crop": "input_crop",
+      "output_crop": "output_crop",
+      "input_tag": "input_crop",
+      "input_mask": "input_mask",
+      "input_crop_mask": "input_crop_mask",
+      "crop_info": "crop_info.txt"
+    }
+  }
+}

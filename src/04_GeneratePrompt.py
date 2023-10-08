@@ -1,5 +1,8 @@
 import os
+import re
 import subprocess
+import sys
+
 import pandas as pd
 import numpy as np
 from typing import Tuple, List, Dict
@@ -8,6 +11,9 @@ import cv2
 from PIL import Image
 from pathlib import Path
 from huggingface_hub import hf_hub_download
+
+from common_utils import prefer_device
+from common_config import *
 
 
 def make_square(img, target_size):
@@ -35,6 +41,7 @@ def smart_resize(img, size):
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_CUBIC)
     return img
 
+
 # 调用gpu，很难成功，环境要求太高
 use_cpu = False
 
@@ -43,18 +50,19 @@ if use_cpu:
 else:
     tf_device_name = '/gpu:0'
 
+
 class Interrogator:
     @staticmethod
     def postprocess_tags(
-        tags: Dict[str, float],
-        threshold=0.35, # 阈值强度，默认0.35
-        additional_tags: List[str] = [],
-        exclude_tags: List[str] = [],
-        sort_by_alphabetical_order=False,
-        add_confident_as_weight=False,
-        replace_underscore=False,
-        replace_underscore_excludes: List[str] = [],
-        escape_tag=False
+            tags: Dict[str, float],
+            threshold=0.35,  # 阈值强度，默认0.35
+            additional_tags: List[str] = [],
+            exclude_tags: List[str] = [],
+            sort_by_alphabetical_order=False,
+            add_confident_as_weight=False,
+            replace_underscore=False,
+            replace_underscore_excludes: List[str] = [],
+            escape_tag=False
     ) -> Dict[str, float]:
         for t in additional_tags:
             tags[t] = 1.0
@@ -69,8 +77,8 @@ class Interrogator:
             )
             # 筛选大于阈值的标签
             if (
-                c >= threshold
-                and t not in exclude_tags
+                    c >= threshold
+                    and t not in exclude_tags
             )
         }
 
@@ -113,21 +121,22 @@ class Interrogator:
         return unloaded
 
     def interrogate(
-        self,
-        image: Image
+            self,
+            image: Image
     ) -> Tuple[
         Dict[str, float],
         Dict[str, float]
     ]:
         raise NotImplementedError()
 
+
 class WaifuDiffusionInterrogator(Interrogator):
     def __init__(
-        self,
-        name: str,
-        model_path='model.onnx',
-        tags_path='selected_tags.csv',
-        **kwargs
+            self,
+            name: str,
+            model_path='model.onnx',
+            tags_path='selected_tags.csv',
+            **kwargs
     ) -> None:
         super().__init__(name)
         self.model_path = model_path
@@ -153,7 +162,6 @@ class WaifuDiffusionInterrogator(Interrogator):
             raise FileNotFoundError(f'{tags_path}不存在')
         self.model_path = model_path
         self.tags_path = tags_path
-      
 
         self.model = InferenceSession(str(model_path), providers=providers)
 
@@ -162,8 +170,8 @@ class WaifuDiffusionInterrogator(Interrogator):
         self.tags = pd.read_csv(tags_path)
 
     def interrogate(
-        self,
-        image: Image
+            self,
+            image: Image
     ) -> Tuple[
         Dict[str, float],  # rating confidents
         Dict[str, float]  # tag confidents
@@ -204,39 +212,123 @@ class WaifuDiffusionInterrogator(Interrogator):
 
         return ratings, tags
 
-my_wf =  WaifuDiffusionInterrogator(
+
+def getTags(model, img_path):
+    img = Image.open(img_path)
+    ratings, tags = model.interrogate(img)
+    img.close()
+    tags = model.postprocess_tags(tags)
+    return ",".join(tags.keys())
+
+
+pattern_word_split = re.compile(r"\W+")
+
+
+def is_tag_in_list(tag, rule_list):
+    words = pattern_word_split.split(tag)
+    for word in words:
+        if word in rule_list:
+            return True
+    return False
+
+
+def filter_action(tag_actions:[], tags: []):
+    action_tags = []
+    other_tags = []
+    for tag in tags:
+        if is_empty(tag):
+            continue
+        if is_tag_in_list(tag, tag_actions):
+            action_tags.append(tag)
+        else:
+            other_tags.append(tag)
+    return action_tags, other_tags
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Params: <runtime-config.json>")
+        exit(ERROR_PARAM_COUNT)
+
+    it_mode = sys.argv[2] if len(sys.argv) > 2 else None
+
+    try:
+        setting_json = read_config(sys.argv[1], webui=False)
+    except Exception as e:
+        print("Error: read config", e)
+        exit(ERROR_READ_CONFIG)
+
+    device = prefer_device()
+
+    setting_config = SettingConfig(setting_json)
+
+    # workspace path config
+    workspace = setting_config.get_workspace_config()
+
+    if not os.path.exists(workspace.input_tag):
+        os.makedirs(workspace.input_tag)
+
+    # 可选功能
+    if setting_config.enable_tag():
+
+        # load model
+        model = WaifuDiffusionInterrogator(
             'wd14-convnextv2-v2',
             repo_id='SmilingWolf/wd-v1-4-convnextv2-tagger-v2',
             revision='v2.0'
         )
 
-def getTags(img_path):
-    global my_wf
-    img = Image.open(img_path)
-    ratings, tags = my_wf.interrogate(img)
-    tags = my_wf.postprocess_tags(tags)
-    
-    return ",".join(tags.keys())
+        tag_mode = setting_config.get_tag_mode()
+        tag_actions = setting_config.get_tag_actions()
 
-# 定义输入文件夹
-folder_path = os.path.dirname(os.getcwd())
-frame_path = os.path.join(folder_path, "video_frame_w")  # 定义原始图像文件夹
+        # 轮询开始输出
+        frame_files = [f for f in os.listdir(workspace.input_crop) if f.endswith(".png")]
+        frame_files.sort()
 
-# 轮询开始输出
-frame_files = [f for f in os.listdir(frame_path) if f.endswith(".png")]
-for frame in frame_files:
-    frame_file = os.path.join(frame_path, frame)
-    txt= getTags(frame_file)
-    tag_count= len(txt.split(","))+1
-    # 创建提示词txt文件
-    txt_file = os.path.join(frame_path, f'{os.path.splitext(frame_file)[0]}.txt')
-    with open(txt_file, 'w', encoding='utf-8') as tags:
-        tags.write(txt)
-    print(f'{frame}的提示词反推完成，提取{tag_count}个tag')
+        common_tags = dict()
+        for frame in frame_files:
+            frame_file = os.path.join(workspace.input_crop, frame)
+            txt = getTags(model, frame_file)
+            tags = txt.split(",")
 
-# 是否进行下一步
-choice = input("\n是否直接开始下一步，进行批量图生图？需要启用API后启动SD，详细配置请打开[05_BatchImg2Img]文件手动调整\n1. 是\n2. 否\n请输入你的选择：")
-if choice == "1":
-    subprocess.run(['python', '05_BatchImg2Img.py'])
-else:
-    quit()
+            if tag_mode == TAG_MODE_ACTION:
+                actions, others = filter_action(tag_actions, tags)
+                # 替换 txt 为 action txt
+                txt = ",".join(actions) if len(actions) > 0 else ""
+            elif tag_mode == TAG_MODE_ACTION_COMMON:
+                actions, others = filter_action(tag_actions, tags)
+                txt = ",".join(actions) if len(actions) > 0 else ""
+                # tag 计数
+                for tag in others:
+                    if tag in common_tags:
+                        common_tags[tag] = common_tags[tag] + 1
+                    else:
+                        common_tags[tag] = 1
+
+            # save tag
+            txt_file = os.path.join(workspace.input_tag, f'{Path(frame_file).stem}.txt')
+            with open(txt_file, 'w', encoding='utf-8') as tags:
+                tags.write(txt)
+            # tag_count = len(txt.split(","))+1
+            print(f'{frame} 提示词反推完成')
+
+        # 过滤出现次数 > 30% 的 tags 作为 common tags
+        threshold_count = max(int(len(frame_files) * 0.3), 1)
+        common_tag_list = []
+        for tag in common_tags:
+            if common_tags[tag] > threshold_count:
+                common_tag_list.append(tag)
+        # save common tag
+        txt_file = os.path.join(workspace.input_tag, f'common.txt')
+        with open(txt_file, 'w', encoding='utf-8') as tags:
+            txt = ",".join(common_tag_list) if len(common_tag_list) > 0 else ""
+            tags.write(txt)
+
+    if it_mode is None:
+        it_mode = setting_config.get_interactive_mode()
+    if it_mode == INTERACTIVE_MODE_INPUT:
+        # 是否进行下一步
+        choice = input("\n是否直接开始下一步，进行批量图生图？需要启用API后启动SD，详细配置请打开[05_BatchImg2Img]文件手动调整\n1. 是\n2. 否\n请输入你的选择：")
+        if choice != "1":
+            exit(0)
+    subprocess.run(['python', '05_BatchImg2Img.py', sys.argv[1]])

@@ -1,5 +1,5 @@
 # AetherConverTools - 以太转换工具
-- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)
+- 特别鸣谢[以太之尘丨](https://space.bilibili.com/1689500)，[尽灭](https://github.com/GoldenLoong)，[October](https://github.com/philodoxos)，[浮尘](https://b23.tv/qZusVvg)，[阿珂](https://github.com/ItTianYuStudio)
 - 以太流横版视频转成竖版后重绘，再恢复横版输出视频，全套工作流的辅助工具。
 - 配合[ebsynth_utility](https://github.com/s9roll7/ebsynth_utility)使用，可获得更好的效果。
 ## 环境安装：
@@ -9,11 +9,107 @@
 4. 部分步骤在首次运行时需要下载特定的AI模型，有可能需要科学上网，下载成功后，不再需要科学上网（除非模型更新）
 
 ## 素材准备：
-0. 将视频文件命名为``video.mp4``，放在工作流根目录
+1. 将视频文件命名为`video.mp4`，放在任意目录下，复制此目录的路径
 
 ## 执行步骤：
-1. 运行``01_从头开始工作流.bat``文件，跟随引导完成工作流
-2. 可运行``02_中途开始工作流.bat``文件，随时运行任意工作流步骤
+- 首次使用的用户先运行 `配置_创建.bat` 生成一份配置，非首次使用可运行 `配置_修改.bat` 修改已存在的配置，生成的配置都放在 `config/runtime` 目录下；
+- 运行`启动_自动模式.bat` 或 `启动_交互模式.bat`文件;
+- 选择开始的步骤，比如 1;
+- 输入 `config/runtime` 下的任意配置文件路径（可直接拖拽配置文件到命令行）。比如 `D:/AetherConverTools/config/runtime/sample_img_base.txt`;
+
+## 样例配置
+
+- runtime
+  - sample_img_base.txt: 图生图 基础配置
+    - controlnet: lineart:0.6 + tile:0.6
+    - 缩放: 1.0
+    - 重绘强度: 0.6
+    - 裁剪: 最小化
+    - inpaint: 关
+  - sample_img_tag_tem.txt: 图生图 基础 + tem loopback
+    - controlnet: lineart:0.6 + tile:0.6 + tem:0.6
+  - sample_txt_base.txt: 文生图 基础配置
+  - sample_txt_tag_tem.txt: 文生图 基础 + tem loopback
+
+
+## runtime 配置
+
+运行依赖的相关配置
+
+提示：如果不会修改，请使用样例里的配置
+
+- workspace: 工作目录，存放输入输出和临时文件
+
+- video: 输入视频配置
+  - input: 输入视频文件名
+  - output: 输出视频文件名
+  - fps: 提取的视频帧率
+  - audio: 是否提取视频音频
+
+- webui:
+  - denoising_strength: 重绘强度
+  - prompt: 正向提示词
+  - negative_prompt: 负向提示词
+  - sampler_name: 采样器
+  - steps: 重绘步数
+
+- config:
+  - setting: 使用的 setting 配置文件路径
+  - webui: 使用的 webui 配置文件路径
+
+## setting 配置：
+
+工作流相关配置
+
+提示：如果不会修改，请使用样例里的配置
+
+- type:
+  - img2img: 图生图
+  - txt2img: 文生图
+
+- seed:
+  - -1: 随机
+  - 1: 使用第一张图的种子
+  - xxxxx: 自定义种子
+
+- mask_mode: 蒙版抠图算法
+  - "": 不抠图
+  - transparent-background-fast: 速度快，效果一般
+  - transparent-background: 速度慢，效果较好
+  - #RRGGBBAA: 只适用于纯色背景(颜色值按需修改)抠图，速度快，效果好
+  - sam(暂未支持): segment every thing 抠图，适用于复杂场景，多人多物体。
+
+- mask_bg_mode: 蒙版背景模式
+  - "": 不处理背景
+  - #RRGGBBAA: 替换为纯色背景(颜色值按需修改)
+  - transparent: 替换为透明背景
+
+- tag
+  - enable: 是否启用tag反推
+  - mode: 反推 tag 管理模式
+    - "": 不处理tag
+    - action: 单帧只保留动作表情
+    - action_common: 提取公共tag, 单帧只保留动作表情
+  - actions: 动作表情tag列表，在此列表的 tag 会被当做 动作表情 处理
+
+- crop:
+  - 0: 不裁剪
+  - 1: 蒙版最小化裁剪
+  - 2: 蒙版等尺寸裁剪
+
+- resize: 缩放配置（scale 和 width height字段同时存在情况下，width height 优先级更高）
+  - width: 缩放到指定宽，不写忽略
+  - height: 缩放到指定高，不写忽略
+  - scale: 等比缩放比例，比如 1.5，默认 1
+
+- inpaint: 是否启用蒙版绘制
+
+## webui 配置
+
+webui 相关配置，有能力的自行修改。
+可增加或删除 controlnet 模型
+
+
 
 ## 常见问题解决：
 1. 明明是N卡且安装了CUDA，却依然只能调用CPU进行运算：

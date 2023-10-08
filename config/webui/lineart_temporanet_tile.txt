@@ -1,0 +1,40 @@
+{
+  "sampler_name": "Euler a",
+  "prompt": "",
+  "negative_prompt":"",
+  "batch_size": 1,
+  "steps": 20,
+  "cfg_scale": 7,
+  "denoising_strength": 0.6,
+  "alwayson_scripts": {
+    "controlnet": {
+      "args": [
+        {
+          "input_image": "{current_image_origin}",
+          "module": "lineart_realistic",
+          "model": "control_v11p_sd15_lineart [43d4be0d]",
+          "weight": 0.6,
+          "pixel_perfect": true,
+          "control_mode": 2
+        },
+        {
+          "input_image": "{current_image_origin}",
+          "module": "tile_colorfix",
+          "model": "control_v11f1e_sd15_tile [a371b31b]",
+          "weight": 0.6,
+          "pixel_perfect": true,
+          "control_mode": 0,
+          "threshold_a": 8
+        },
+        {
+          "input_image": "{previous_image_transformed}",
+          "module": "none",
+          "model": "diff_control_sd15_temporalnet_fp16 [adc6bd97]",
+          "weight": 0.6,
+          "pixel_perfect": true,
+          "control_mode": 0
+        }
+      ]
+    }
+  }
+}
